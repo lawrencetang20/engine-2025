@@ -100,7 +100,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'pips', 'stacks'
             if bounty_hit_0 and not bounty_hit_1:
                 delta = delta * (BOUNTY_RATIO - 1) / 2 + BOUNTY_CONSTANT
             elif not bounty_hit_0 and bounty_hit_1:
-                delta = delta * (BOUNTY_RATIO - 1) / 2 + BOUNTY_CONSTANT
+                delta = -(delta * (BOUNTY_RATIO - 1) / 2 + BOUNTY_CONSTANT)
             else:
                 delta = 0
         else:
