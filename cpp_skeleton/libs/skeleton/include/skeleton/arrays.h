@@ -1,12 +1,3 @@
-// http://suffe.cool/poker/code/
-//
-/*
-** This is a table lookup for all "flush" hands (e.g.  both
-** flushes and straight-flushes.  Entries containing a zero
-** mean that combination is not possible with a five-card
-** flush hand.
-*/
-
 unsigned short flushes[] =
 {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
