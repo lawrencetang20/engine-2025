@@ -6,7 +6,6 @@
 #include <array>
 #include <time.h>
 
-
 #include <skeleton/poker.h>
 #include <skeleton/arrays.h>
 #include <vector>
@@ -253,6 +252,11 @@ struct Bot {
     // bool bigBlind = (active == 1);  // true if you are the big blind
   }
 
+
+
+
+
+
   /*
     Called when a round ends. Called NUM_ROUNDS times.
 
@@ -282,6 +286,11 @@ struct Bot {
       std::cout << "Opponent hit their bounty of " << opponent_bounty_rank << "!" << std::endl;
     }
   }
+
+
+
+
+
 
   /*
     Where the magic happens - your code should implement this function.
