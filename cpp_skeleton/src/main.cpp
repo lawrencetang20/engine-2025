@@ -340,7 +340,7 @@ struct Bot {
         int rankType = hand_rank(val);
 
         std::cout << "Evaluator numeric value: " << val << "\n"
-              << "Classification: " << HAND_TYPE_NAME[rankType] << std::endl;
+            << "Classification: " << HAND_TYPE_NAME[rankType] << std::endl;
     }
     
 
