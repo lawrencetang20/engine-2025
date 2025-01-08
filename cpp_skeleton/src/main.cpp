@@ -20,13 +20,10 @@ inline int rankOfCard(std::uint32_t card)
     return static_cast<int>((card >> 8) & 0xF);
 }
 
-// -------------------------------------------------------------------
-// A single Card class in C++
-// -------------------------------------------------------------------
 class Card
 {
 public:
-    std::uint32_t code; // same 32-bit encoding from "poker.h"
+    std::uint32_t code; 
 
     Card() : code(0) {}
     explicit Card(std::uint32_t c) : code(c) {}
@@ -37,7 +34,6 @@ public:
         return rankOfCard(code);
     }
 
-    // Suit detection as in original logic:
     //   0x8000 -> clubs, 0x4000 -> diamonds, 0x2000 -> hearts, 0x1000 -> spades
     char suitChar() const
     {
@@ -59,11 +55,6 @@ public:
     }
 };
 
-// -------------------------------------------------------------------
-// Deck class
-//   - Creates the 52 cards with the exact encoding from original "poker.h"
-//   - Shuffles them
-// -------------------------------------------------------------------
 class Deck
 {
 private:
@@ -78,7 +69,6 @@ public:
         init();
     }
 
-    // Build the 52-card deck using the same bit logic as original "init_deck"
     void init()
     {
         cards_.resize(52);
@@ -408,16 +398,14 @@ struct Bot
 
     Action getPreflopAction(RoundStatePtr roundState, int active)
     {
+
+        // ADD BOUNTY LOGIC TODO
+
         auto legalActions =
             roundState->legalActions();  // the actions you are allowed to take
         int street = roundState->street; // 0, 3, 4, or 5 representing pre-flop, flop, turn, or river respectively
         // auto myCards = roundState->hands[active];        // your cards
-        auto boardCards = roundState->deck;              // the board cards
-        int myPip = roundState->pips[active];            // the number of chips you have contributed to the pot this round of betting
         int oppPip = roundState->pips[1 - active];       // the number of chips your opponent has contributed to the pot this round of betting
-        int myStack = roundState->stacks[active];        // the number of chips you have remaining
-        int oppStack = roundState->stacks[1 - active];   // the number of chips your opponent has remaining
-        int continueCost = oppPip - myPip;               // the number of chips needed to stay in the pot
         int myContribution = STARTING_STACK - myStack;   // the number of chips you have contributed to the pot
         int oppContribution = STARTING_STACK - oppStack; // the number of chips your opponent has contributed to the pot
         char myBounty = roundState->bounties[active];    // your current bounty rank
@@ -605,6 +593,8 @@ struct Bot
         int myContribution = STARTING_STACK - myStack;   // the number of chips you have contributed to the pot
         int oppContribution = STARTING_STACK - oppStack; // the number of chips your opponent has contributed to the pot
         char myBounty = roundState->bounties[active];    // your current bounty rank
+
+        // ADD IF ALREADY WON LOGIC TODO
 
         if (street == 0)
         {
