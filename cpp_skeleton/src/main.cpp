@@ -283,8 +283,8 @@ using namespace pokerbots::skeleton;
 // GAME PARAMETERS
 static const int numRounds = NUM_ROUNDS;
 static const int startingStack = STARTING_STACK;
-static const int bigBlind = BIG_BLIND;
-static const int smallBlind = SMALL_BLIND;
+static const int bigBlindVal = BIG_BLIND;
+static const int smallBlindVal = SMALL_BLIND;
 
 struct Bot
 {
@@ -297,6 +297,13 @@ struct Bot
     bool alreadyWon = false;
 
     int numMCTrials = 400;
+
+    int numOppChecks = 0;
+    int numSelfChecks = 0;
+    int oppLastContribution = 0;
+
+    double raiseFactor = 0.15;
+    double reRaiseFactor = 0.025;
 
     std::unordered_map<std::string, int> preflopDict = {
         {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 6}, {"88o", 7}, {"AKs", 8}, {"77o", 9}, {"AQs", 10}, {"AJs", 11}, {"AKo", 12}, {"ATs", 13}, {"AQo", 14}, {"AJo", 15}, {"KQs", 16}, {"KJs", 17}, {"A9s", 18}, {"ATo", 19}, {"66o", 20}, {"A8s", 21}, {"KTs", 22}, {"KQo", 23}, {"A7s", 24}, {"A9o", 25}, {"KJo", 26}, {"55o", 27}, {"QJs", 28}, {"K9s", 29}, {"A5s", 30}, {"A6s", 31}, {"A8o", 32}, {"KTo", 33}, {"QTs", 34}, {"A4s", 35}, {"A7o", 36}, {"K8s", 37}, {"A3s", 38}, {"QJo", 39}, {"K9o", 40}, {"A5o", 41}, {"A6o", 42}, {"Q9s", 43}, {"K7s", 44}, {"JTs", 45}, {"A2s", 46}, {"QTo", 47}, {"44o", 48}, {"A4o", 49}, {"K6s", 50}, {"K8o", 51}, {"Q8s", 52}, {"A3o", 53}, {"K5s", 54}, {"J9s", 55}, {"Q9o", 56}, {"JTo", 57}, {"K7o", 58}, {"A2o", 59}, {"K4s", 60}, {"Q7s", 61}, {"K6o", 62}, {"K3s", 63}, {"T9s", 64}, {"J8s", 65}, {"33o", 66}, {"Q6s", 67}, {"Q8o", 68}, {"K5o", 69}, {"J9o", 70}, {"K2s", 71}, {"Q5s", 72}, {"T8s", 73}, {"K4o", 74}, {"J7s", 75}, {"Q4s", 76}, {"Q7o", 77}, {"T9o", 78}, {"J8o", 79}, {"K3o", 80}, {"Q6o", 81}, {"Q3s", 82}, {"98s", 83}, {"T7s", 84}, {"J6s", 85}, {"K2o", 86}, {"22o", 87}, {"Q2s", 87}, {"Q5o", 89}, {"J5s", 90}, {"T8o", 91}, {"J7o", 92}, {"Q4o", 93}, {"97s", 80}, {"J4s", 95}, {"T6s", 96}, {"J3s", 97}, {"Q3o", 98}, {"98o", 99}, {"87s", 75}, {"T7o", 101}, {"J6o", 102}, {"96s", 103}, {"J2s", 104}, {"Q2o", 105}, {"T5s", 106}, {"J5o", 107}, {"T4s", 108}, {"97o", 109}, {"86s", 110}, {"J4o", 111}, {"T6o", 112}, {"95s", 113}, {"T3s", 114}, {"76s", 80}, {"J3o", 116}, {"87o", 117}, {"T2s", 118}, {"85s", 119}, {"96o", 120}, {"J2o", 121}, {"T5o", 122}, {"94s", 123}, {"75s", 124}, {"T4o", 125}, {"93s", 126}, {"86o", 127}, {"65s", 128}, {"84s", 129}, {"95o", 130}, {"53s", 131}, {"92s", 132}, {"76o", 133}, {"74s", 134}, {"65o", 135}, {"54s", 87}, {"85o", 137}, {"64s", 138}, {"83s", 139}, {"43s", 140}, {"75o", 141}, {"82s", 142}, {"73s", 143}, {"93o", 144}, {"T2o", 145}, {"T3o", 146}, {"63s", 147}, {"84o", 148}, {"92o", 149}, {"94o", 150}, {"74o", 151}, {"72s", 152}, {"54o", 153}, {"64o", 154}, {"52s", 155}, {"62s", 156}, {"83o", 157}, {"42s", 158}, {"82o", 159}, {"73o", 160}, {"53o", 161}, {"63o", 162}, {"32s", 163}, {"43o", 164}, {"72o", 165}, {"52o", 166}, {"62o", 167}, {"42o", 168}, {"32o", 169}};
@@ -317,6 +324,10 @@ struct Bot
         bool bigBlind = (active == 1);            // true if you are the big blind
 
         timesBetPreflop = 0;
+
+        numOppChecks = 0;
+        numSelfChecks = 0;
+        oppLastContribution = 0;
 
         std::cout << "\nRound " << totalRounds << " starting" << std::endl;
 
@@ -437,7 +448,7 @@ struct Bot
         return hpair + onsuit;
     }
 
-    int noIllegalRaises(int myBet, RoundStatePtr roundState)
+    int noIllegalRaises(int myBet, RoundStatePtr roundState, bool active)
     {
         int myPip = roundState->pips[active];            // the number of chips you have contributed to the pot this round of betting
         int oppPip = roundState->pips[1 - active];       // the number of chips your opponent has contributed to the pot this round of betting
@@ -456,7 +467,6 @@ struct Bot
     // ADD BOUNTY LOGIC TODO
     Action getPreflopAction(RoundStatePtr roundState, int active)
     {
-
         auto legalActions =
             roundState->legalActions();  // the actions you are allowed to take
         int street = roundState->street; // 0, 3, 4, or 5 representing pre-flop, flop, turn, or river respectively
@@ -487,14 +497,14 @@ struct Bot
                 std::cout << "3x raise from sb" << std::endl;
                 timesBetPreflop++;
                 myBet = 3 * pot;
-                return {Action::Type::RAISE, noIllegalRaises(myBet, roundState)};
+                return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
             }
             else if (handStrength < 88)
             {
                 std::cout << "2x raise from sb" << std::endl;
                 timesBetPreflop++;
                 myBet = 2 * pot;
-                return {Action::Type::RAISE, noIllegalRaises(myBet, roundState)};
+                return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
             }
             else
             {
@@ -512,7 +522,7 @@ struct Bot
                 if (legalActions.find(Action::Type::RAISE) != legalActions.end())
                 {
                     std::cout << "2x raise from bb" << std::endl;
-                    return {Action::Type::RAISE, noIllegalRaises(myBet, roundState)};
+                    return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
                 }
                 else if (legalActions.find(Action::Type::CALL) != legalActions.end())
                 {
@@ -532,7 +542,7 @@ struct Bot
                 if (legalActions.find(Action::Type::RAISE) != legalActions.end())
                 {
                     std::cout << "2x random raise from bb" << std::endl;
-                    return {Action::Type::RAISE, noIllegalRaises(myBet, roundState)};
+                    return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
                 }
                 else
                 {
@@ -577,7 +587,7 @@ struct Bot
                 if (legalActions.find(Action::Type::RAISE) != legalActions.end())
                 {
                     std::cout << "2x reraise from raise" << std::endl;
-                    return {Action::Type::RAISE, noIllegalRaises(myBet, roundState)};
+                    return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
                 }
                 else if (legalActions.find(Action::Type::CALL) != legalActions.end())
                 {
@@ -616,16 +626,198 @@ struct Bot
                 }
             }
         }
-
-        std::cout << "Reraise HAVENT FINISHED YET" << std::endl;
-        return {Action::Type::CHECK};
+        std::cout << "SHOULD NEVER BE HERE" << std::endl;
+        return {Action::Type::FOLD};
     }
 
-    std::pair<Action, int> getPostflopAction(double handStrength, RoundStatePtr gameState, int active)
+    std::pair<Action, int> getPostflopAction(double handStrength, RoundStatePtr roundState, int active)
     {
-        // if negative, then it is not a raise
-        return {{Action::Type::FOLD}, -1};
+
+        /*
+        returns {action, then action type} pair
+        */
+
+        auto legalActions =
+            roundState->legalActions();  // the actions you are allowed to take
+        int street = roundState->street; // 0, 3, 4, or 5 representing pre-flop, flop, turn, or river respectively
+        // auto myCards = roundState->hands[active];        // your cards
+        // auto boardCards = roundState->deck;              // the board cards
+        int myPip = roundState->pips[active];            // the number of chips you have contributed to the pot this round of betting
+        int oppPip = roundState->pips[1 - active];       // the number of chips your opponent has contributed to the pot this round of betting
+        int myStack = roundState->stacks[active];        // the number of chips you have remaining
+        int oppStack = roundState->stacks[1 - active];   // the number of chips your opponent has remaining
+        int continueCost = oppPip - myPip;               // the number of chips needed to stay in the pot
+        int myContribution = STARTING_STACK - myStack;   // the number of chips you have contributed to the pot
+        int oppContribution = STARTING_STACK - oppStack; // the number of chips your opponent has contributed to the pot
+        char myBounty = roundState->bounties[active];    // your current bounty rank
+        bool bigBlind = (active == 1);                   // true if you are the big blind
+
+        std::vector<Card> myCards;
+        for(const auto& cardStr : roundState->hands[active]){
+            try{
+                Card c(generateCardCodeFromString(cardStr));
+                myCards.emplace_back(c);
+                // std::cout << "My card: ";
+                // c.print();
+                // std::cout << std::endl;
+            }
+            catch(const std::exception& e){
+                std::cerr << "Error converting my card: " << e.what() << std::endl;
+            }
+        }
+
+        std::vector<Card> boardCards;
+        for(int i = 0; i < street; ++i){
+            const auto& cardStr = roundState->deck[i];
+            try{
+                Card c(generateCardCodeFromString(cardStr));
+                boardCards.emplace_back(c);
+                // std::cout << "Board card: ";
+                // c.print();
+                // std::cout << std::endl;
+            }
+            catch(const std::exception& e){
+                std::cerr << "Error converting board card: " << e.what() << std::endl;
+            }
+        }
+        
+        double randPercent = (rand() / double(RAND_MAX));
+
+        // if opponent bets
+        if (oppPip > 0)
+        {
+            oppLastContribution = oppContribution;
+        }
+
+        if (!bigBlind && oppPip == 0)
+        {
+            std::cout << "Opponent checks" << std::endl;
+            numOppChecks++;
+        }
+        else if (bigBlind && street > 3 && oppLastContribution == oppContribution)
+        {
+            std::cout << "Opponent checks" << std::endl;
+            numOppChecks++;
+        }
+
+        if (legalActions.find(Action::Type::CHECK) != legalActions.end())
+        {
+            std::cout << "Able to check or out of position" << std::endl;
+
+            if ((randPercent < handStrength) && (handStrength >= (0.5 + ((street % 3) * (double) raiseFactor))))
+            {
+                numOppChecks = 0;
+                numSelfChecks = 0;
+                std::cout << "I raise for value with handStrength " << handStrength << std::endl;
+                return {{Action::Type::RAISE}, 1};
+            }
+            else if (numOppChecks == 2)
+            {
+                numOppChecks = 0;
+                numSelfChecks = 0;
+                std::cout << "I raise for 2 check bluff" << std::endl;
+                return {{Action::Type::RAISE}, 2};
+            }
+            else if (numOppChecks == 3)
+            {
+                numOppChecks = 0;
+                numSelfChecks = 0;
+                std::cout << "I raise for 3 check bluff" << std::endl;
+                return {{Action::Type::RAISE}, 3};
+            }
+            
+            std::cout << "I check" << std::endl;
+            numSelfChecks++;
+            return {{Action::Type::CHECK}, -1};
+        }
+        // opponent raises or reraises
+        else {
+            std::cout << "Opponent raises or reraises" << std::endl;
+            int pot = myContribution + oppContribution;
+
+            double realPotOdds = (double) continueCost / (pot + continueCost);
+
+            std::cout << "Real pot odds: " << realPotOdds << std::endl;
+
+            // change pot odds
+
+            double changedPotOdds = realPotOdds;
+
+            if (realPotOdds > 1.1)
+            {
+                changedPotOdds = 0.85;
+            }
+            else if (realPotOdds > 0.8)
+            {
+                changedPotOdds = 0.8;
+            }
+            else if (realPotOdds > 0.7)
+            {
+                changedPotOdds = 0.7;
+            }
+            else
+            {
+                changedPotOdds = std::min(realPotOdds + 0.0725, 0.725);
+            }
+
+            if (realPotOdds < 0.5)
+            {
+                changedPotOdds = std::min(realPotOdds + 0.0725, 0.5);
+            }
+            
+            std::cout << "Changed pot odds: " << changedPotOdds << std::endl;
+
+            if (handStrength < changedPotOdds || handStrength < 0.35)
+            {
+                // TODO MAYBE ADD FLOATING ON THE FLOP?
+                return {{Action::Type::FOLD}, -1};
+            }
+            else{
+                double reraiseStrength = (0.85 + ((street % 3) * reRaiseFactor));
+                if (handStrength >= reraiseStrength || (handStrength - changedPotOdds > 0.3 && handStrength >= reraiseStrength - 0.05))
+                {
+                    std::cout << "I reraise" << std::endl;
+                    return {{Action::Type::RAISE}, 1};
+                }
+            }
+            numSelfChecks++;
+            std::cout << "I call" << std::endl;
+            return {{Action::Type::CALL}, -1};
+        }
     }
+
+
+    int getPostflopBetSize(double handStrength, RoundStatePtr roundState, int active, int actionCategory)
+    {
+        // 1 is value, 2 is 2 check bluff, 3 is 3 check bluff
+
+        auto legalActions =
+            roundState->legalActions();  // the actions you are allowed to take
+        int street = roundState->street; // 0, 3, 4, or 5 representing pre-flop, flop, turn, or river respectively
+        // auto myCards = roundState->hands[active];        // your cards
+        int oppPip = roundState->pips[1 - active];       // the number of chips your opponent has contributed to the pot this round of betting
+        int myStack = roundState->stacks[active];        // the number of chips you have remaining
+        int oppStack = roundState->stacks[1 - active];   // the number of chips your opponent has remaining
+        int myContribution = STARTING_STACK - myStack;   // the number of chips you have contributed to the pot
+        int oppContribution = STARTING_STACK - oppStack; // the number of chips your opponent has contributed to the pot
+        char myBounty = roundState->bounties[active];    // your current bounty rank
+        bool bigBlind = (active == 1);                   // true if you are the big blind
+
+        int pot = myContribution + oppContribution;
+
+        double randPercent = (rand() / double(RAND_MAX));
+
+        double threshold = 0.8+0.05*(street % 3);
+        
+        if (actionCategory == 1 && handStrength >= threshold){
+            return noIllegalRaises(int((1+(2.0*(pow(handStrength, 2.0)*randPercent)))* 3.0 / 8.0 * pot), roundState, active);
+        }
+        else
+        {
+            return noIllegalRaises(int(randPercent * 1.75 * pot), roundState, active);
+        }
+    }
+
 
     Action getAction(GameInfoPtr gameState, RoundStatePtr roundState, int active)
     {
@@ -642,6 +834,8 @@ struct Bot
         int myContribution = STARTING_STACK - myStack;   // the number of chips you have contributed to the pot
         int oppContribution = STARTING_STACK - oppStack; // the number of chips your opponent has contributed to the pot
         char myBounty = roundState->bounties[active];    // your current bounty rank
+
+        double handStrength;
 
         std::pair<Action, int> postflopAction;
 
@@ -675,9 +869,9 @@ struct Bot
                 try{
                     Card c(generateCardCodeFromString(cardStr));
                     myCards.emplace_back(c);
-                    std::cout << "My card: ";
-                    c.print();
-                    std::cout << std::endl;
+                    // std::cout << "My card: ";
+                    // c.print();
+                    // std::cout << std::endl;
                 }
                 catch(const std::exception& e){
                     std::cerr << "Error converting my card: " << e.what() << std::endl;
@@ -690,9 +884,9 @@ struct Bot
                 try{
                     Card c(generateCardCodeFromString(cardStr));
                     boardCards.emplace_back(c);
-                    std::cout << "Board card: ";
-                    c.print();
-                    std::cout << std::endl;
+                    // std::cout << "Board card: ";
+                    // c.print();
+                    // std::cout << std::endl;
                 }
                 catch(const std::exception& e){
                     std::cerr << "Error converting board card: " << e.what() << std::endl;
@@ -752,84 +946,41 @@ struct Bot
                 }
             }
 
-            double handStrength = (static_cast<double>(winCount) / static_cast<double>(numMCTrials)) * 100.0;
-            std::cout << "Monte Carlo Simulation: " << handStrength << "% wins" << std::endl;
+            handStrength = (static_cast<double>(winCount) / static_cast<double>(numMCTrials));
+            std::cout << "Monte Carlo Simulation: " << handStrength << " for street " << street << std::endl;
 
             // add some sort of draw recognition from board + your hand TODO
             postflopAction = getPostflopAction(handStrength, roundState, active);
         }
 
-        if (postflopAction.second == -1)
+        auto actionPostflop = postflopAction.first;
+        auto actionCategory = postflopAction.second;
+
+        if (actionCategory == -1)
         {
-            return postflopAction.first;
+            return actionPostflop;
         }
         else
         {
-            // if can't raise then call
-            //return {postflopAction.first, noIllegalRaises(postflopAction.second, roundState)};
+            // TRY TO RAISE
+            if (legalActions.find(Action::Type::RAISE) != legalActions.end())
+            {
+                return {Action::Type::RAISE, getPostflopBetSize(handStrength, roundState, active, actionCategory)};
+            }
+            else if (legalActions.find(Action::Type::CALL) != legalActions.end())
+            {
+                std::cout << "Call after failed reraise" << std::endl;
+                return {Action::Type::CALL};
+            }
+            else
+            {
+                numSelfChecks++;
+                std::cout << "Check after failed call and reraise" << std::endl;
+                return {Action::Type::CHECK};
+            }
+        
+            
         }
-
-        // if (street == 3)
-        // {
-
-        //   std::cout << "STREET 3!!!!!!!" << std::endl;
-
-        //   std::cout << "Board: ";
-        //   for (const auto &boardCard : boardCards)
-        //   {
-        //     std::cout << boardCard << " ";
-        //   }
-
-        //   std::cout << std::endl;
-
-        //   std::cout << "Cards: ";
-        //   for (const auto &card : myCards)
-        //   {
-        //     std::cout << card << " ";
-        //   }
-        //   std::cout << std::endl;
-
-        //   Card c1(generateCardCodeFromString(myCards[0]));
-        //   std::cout << "myCard1: " << c1.rankChar() << c1.suitChar() << std::endl;
-        //   Card c2(generateCardCodeFromString(myCards[1]));
-        //   std::cout << "myCard2: " << c2.rankChar() << c2.suitChar() << std::endl;
-
-        //   Card c3(generateCardCodeFromString(boardCards[0]));
-        //   Card c4(generateCardCodeFromString(boardCards[1]));
-        //   Card c5(generateCardCodeFromString(boardCards[2]));
-
-        //   unsigned short val = eval5Hand(c1, c2, c3, c4, c5);
-        //   int rankType = handRank(val);
-
-        //   std::cout << "Evaluator numeric value: " << val << "\n"
-        //             << "Classification: " << HAND_TYPE_NAME[rankType] << std::endl;
-        // }
-
-        // int minCost = 0, maxCost = 0;
-        // std::array<int, 2> raiseBounds = {0, 0};
-        // if (legalActions.find(Action::Type::RAISE) != legalActions.end())
-        // {
-        //     raiseBounds = roundState->raiseBounds(); // the smallest and largest numbers of chips for a legal bet/raise
-        //     minCost = raiseBounds[0] - myPip;        // the cost of a minimum bet/raise
-        //     maxCost = raiseBounds[1] - myPip;        // the cost of a maximum bet/raise
-        // }
-
-        // if (legalActions.find(Action::Type::RAISE) != legalActions.end())
-        // {
-        //     if (rand() % 2 == 0)
-        //     {
-        //         return {Action::Type::RAISE, raiseBounds[0]};
-        //     }
-        // }
-        // if (legalActions.find(Action::Type::CHECK) != legalActions.end())
-        // {
-        //     return {Action::Type::CHECK};
-        // }
-        // if (rand() % 4 == 0)
-        // {
-        //     return {Action::Type::FOLD};
-        // }
-        // return {Action::Type::CALL};
     }
 };
 
