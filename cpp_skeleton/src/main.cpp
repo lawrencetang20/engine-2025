@@ -439,9 +439,12 @@ struct Bot
 
     int noIllegalRaises(int myBet, RoundStatePtr roundState)
     {
+        int myPip = roundState->pips[active];            // the number of chips you have contributed to the pot this round of betting
+        int oppPip = roundState->pips[1 - active];       // the number of chips your opponent has contributed to the pot this round of betting
+        
         std::array<int, 2> raiseBounds = roundState->raiseBounds();
-        int min_raise = raiseBounds[0];
-        int max_raise = raiseBounds[1];
+        int min_raise = raiseBounds[0] - myPip;
+        int max_raise = raiseBounds[1] - myPip;
 
         if (myBet < min_raise)
             myBet = min_raise;
@@ -453,8 +456,6 @@ struct Bot
     // ADD BOUNTY LOGIC TODO
     Action getPreflopAction(RoundStatePtr roundState, int active)
     {
-
-        // ADD BOUNTY LOGIC TODO
 
         auto legalActions =
             roundState->legalActions();  // the actions you are allowed to take
