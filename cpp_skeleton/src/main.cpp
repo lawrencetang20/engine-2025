@@ -291,7 +291,6 @@ struct Bot
 
     int totalRounds = 1;
     int timesBetPreflop = 0;
-    int reRaiseCounter = 0;
 
     Deck deckInstance;
 
@@ -334,7 +333,6 @@ struct Bot
         bool bigBlind = (active == 1);            // true if you are the big blind
 
         timesBetPreflop = 0;
-        reRaiseCounter = 0;
 
         hasBounty = false;
         bountyRaises = 0;
@@ -567,7 +565,7 @@ struct Bot
                 if (oldHandStrength >= 5 && hasBounty)
                 {
                     double realPotOdds = (double)continueCost / (pot + continueCost);
-                    double equity = pow((169.0-oldHandStrength) / 169.0, 2.0);
+                    double equity = pow((169.0-oldHandStrength) / 169.0, 5.0);
                     
                     std::cout << "Real pot odds: " << realPotOdds << std::endl;
                     std::cout << "Equity: " << equity << std::endl;
@@ -581,11 +579,6 @@ struct Bot
                
                 if (legalActions.find(Action::Type::RAISE) != legalActions.end())
                 {
-                    if (oppPip != 2)
-                    {
-                        std::cout << "opp raise from sb" << std::endl;
-                        reRaiseCounter++;
-                    }
                     std::cout << "2x raise from bb" << std::endl;
                     return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
                 }
@@ -644,12 +637,15 @@ struct Bot
         }
         else
         {
-            if (hasBounty && reRaiseCounter == 1)
+            if (hasBounty)
             {
                 if (oldHandStrength >= 5)
                 {
                     double realPotOdds = (double)continueCost / (pot + continueCost);
-                    double equity = pow((169.0-oldHandStrength) / 169.0, 2.0);
+                    double equity = pow((169.0-oldHandStrength) / 169.0, 5.0);
+
+                    std::cout << "Real pot odds: " << realPotOdds << std::endl;
+                    std::cout << "Equity: " << equity << std::endl;
 
                     if (realPotOdds >= equity && continueCost > 50)
                     {
@@ -668,9 +664,6 @@ struct Bot
 
             if (handStrength < 5)
             {
-                std::cout << "opp reraised" << std::endl;
-                reRaiseCounter++;
-
                 timesBetPreflop++;
                 myBet = 2 * pot;
 
