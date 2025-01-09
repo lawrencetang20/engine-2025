@@ -568,6 +568,9 @@ struct Bot
                 {
                     double realPotOdds = (double)continueCost / (pot + continueCost);
                     double equity = pow((169.0-oldHandStrength) / 169.0, 2.0);
+                    
+                    std::cout << "Real pot odds: " << realPotOdds << std::endl;
+                    std::cout << "Equity: " << equity << std::endl;
 
                     if (realPotOdds >= equity && continueCost > 50)
                     {
