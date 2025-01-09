@@ -17,7 +17,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'pips', 'stacks'
     '''
     Encodes the game tree for one round of poker.
     '''
-    
+
     def get_bounty_hits(self):
         '''
         Determines if each player hit their bounty card during the round.
