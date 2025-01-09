@@ -1057,7 +1057,7 @@ struct Bot
             }
 
             handStrength = (static_cast<double>(winCount) / static_cast<double>(numMCTrials));
-            std::cout << "Monte Carlo Simulation: " << handStrength << " for street " << street << std::endl;
+            std::cout << "MC Simulation: " << handStrength << " for street " << street << std::endl;
 
             // add some sort of draw recognition from board + your hand TODO
             postflopAction = getPostflopAction(handStrength, roundState, active);
