@@ -567,7 +567,7 @@ struct Bot
                 if (oldHandStrength >= 5 && hasBounty)
                 {
                     double realPotOdds = (double)continueCost / (pot + continueCost);
-                    double equity = (169.0-oldHandStrength) / 169.0;
+                    double equity = pow((169.0-oldHandStrength) / 169.0, 2.0);
 
                     if (realPotOdds >= equity && continueCost > 50)
                     {
@@ -646,7 +646,7 @@ struct Bot
                 if (oldHandStrength >= 5)
                 {
                     double realPotOdds = (double)continueCost / (pot + continueCost);
-                    double equity = (169.0-oldHandStrength) / 169.0;
+                    double equity = pow((169.0-oldHandStrength) / 169.0, 2.0);
 
                     if (realPotOdds >= equity && continueCost > 50)
                     {
