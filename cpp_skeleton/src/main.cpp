@@ -402,10 +402,11 @@ struct Bot
         {
             pmThreeCheckBluff += myDelta;
         }
-        
+
         if (totalRounds == numRounds + 1)
         {
-            std::cout << "\n" << std::endl;
+            std::cout << "\n"
+                      << std::endl;
             std::cout << "two check bluff: " << pmTwoCheckBluff << std::endl;
             std::cout << "three check bluff: " << pmThreeCheckBluff << std::endl;
         }
@@ -488,8 +489,8 @@ struct Bot
         int oppPip = roundState->pips[1 - active]; // the number of chips your opponent has contributed to the pot this round of betting
 
         std::array<int, 2> raiseBounds = roundState->raiseBounds();
-        int min_raise = raiseBounds[0] - myPip;
-        int max_raise = raiseBounds[1] - myPip;
+        int min_raise = raiseBounds[0];
+        int max_raise = raiseBounds[1];
 
         if (myBet < min_raise)
             myBet = min_raise;
@@ -498,7 +499,6 @@ struct Bot
         return myBet;
     }
 
-    // ADD BOUNTY LOGIC TODO
     Action getPreflopAction(RoundStatePtr roundState, int active)
     {
         auto legalActions =
@@ -506,6 +506,8 @@ struct Bot
         int street = roundState->street; // 0, 3, 4, or 5 representing pre-flop, flop, turn, or river respectively
         // auto myCards = roundState->hands[active];        // your cards
         int oppPip = roundState->pips[1 - active];       // the number of chips your opponent has contributed to the pot this round of betting
+        int myPip = roundState->pips[active];
+        int continueCost = oppPip - myPip;               // the number of chips needed to stay in the pot
         int myStack = roundState->stacks[active];        // the number of chips you have remaining
         int oppStack = roundState->stacks[1 - active];   // the number of chips your opponent has remaining
         int myContribution = STARTING_STACK - myStack;   // the number of chips you have contributed to the pot
@@ -562,8 +564,25 @@ struct Bot
                 timesBetPreflop++;
                 myBet = 3 * pot;
 
+                if (oldHandStrength >= 5 && hasBounty)
+                {
+                    double realPotOdds = (double)continueCost / (pot + continueCost);
+                    double equity = (169.0-oldHandStrength) / 169.0;
+
+                    if (realPotOdds >= equity && continueCost > 50)
+                    {
+                        std::cout << "Bounty hand fold to large bet" << std::endl;
+                        return {Action::Type::FOLD};
+                    }
+                }
+               
                 if (legalActions.find(Action::Type::RAISE) != legalActions.end())
                 {
+                    if (oppPip != 2)
+                    {
+                        std::cout << "opp raise from sb" << std::endl;
+                        reRaiseCounter++;
+                    }
                     std::cout << "2x raise from bb" << std::endl;
                     return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
                 }
@@ -622,16 +641,31 @@ struct Bot
         }
         else
         {
-
             if (hasBounty && reRaiseCounter == 1)
             {
-                std::cout << "Opponent reraised my reraise, action is call" << std::endl;
-                alarmBell = true;
-                return {Action::Type::CALL};
+                if (oldHandStrength >= 5)
+                {
+                    double realPotOdds = (double)continueCost / (pot + continueCost);
+                    double equity = (169.0-oldHandStrength) / 169.0;
+
+                    if (realPotOdds >= equity && continueCost > 50)
+                    {
+                        std::cout << "Bounty hand fold to large bet" << std::endl;
+                        return {Action::Type::FOLD};
+                    }
+                    else
+                    {
+                        std::cout << "Opponent reraised my reraise, action is call with bounty" << std::endl;
+                        alarmBell = true;
+                        return {Action::Type::CALL};
+                    }
+                }
+
             }
 
             if (handStrength < 5)
             {
+                std::cout << "opp reraised" << std::endl;
                 reRaiseCounter++;
 
                 timesBetPreflop++;
@@ -776,7 +810,7 @@ struct Bot
                 {
                     std::cout << "I stop bounty bluff raising due to alarm bell preflop" << std::endl;
                 }
-                
+
                 else
                 {
                     std::cout << "I bounty bluff raise #" << bountyRaises << std::endl;
@@ -796,7 +830,7 @@ struct Bot
                 std::cout << "I raise for value with handStrength " << handStrength << std::endl;
                 return {{Action::Type::RAISE}, 1};
             }
-            else if (alarmBell && numOppChecks >=2)
+            else if (alarmBell && numOppChecks >= 2)
             {
                 std::cout << "I stop two/three check bluff for alarm bell" << std::endl;
                 numSelfChecks++;
@@ -904,15 +938,16 @@ struct Bot
 
         if (actionCategory == 4 || actionCategory == 3 || actionCategory == 2)
         {
-            return noIllegalRaises(int(pot * 1.5), roundState, active);
+            return noIllegalRaises(int(1.2 * pot), roundState, active);
         }
 
         if (actionCategory == 1 && handStrength >= threshold)
         {
-            return noIllegalRaises(int((1 + (2.0 * (pow(handStrength, 2.0) * randPercent))) * 3.0 / 8.0 * pot), roundState, active);
+            return noIllegalRaises(int((1.2 * pot)), roundState, active);
         }
         else
         {
+            std::cout << "randPercent" << std::endl;
             return noIllegalRaises(int(randPercent * 1.75 * pot), roundState, active);
         }
     }
@@ -1085,6 +1120,14 @@ struct Bot
             else
             {
                 numSelfChecks++;
+                if (twoCheckBluff)
+                {
+                    twoCheckBluff = false;
+                }
+                if (threeCheckBluff)
+                {
+                    threeCheckBluff = false;
+                }
                 std::cout << "Check after failed call and reraise" << std::endl;
                 return {Action::Type::CHECK};
             }
