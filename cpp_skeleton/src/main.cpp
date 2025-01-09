@@ -792,7 +792,7 @@ struct Bot
             std::cout << "Opponent checks from bb" << std::endl;
             numOppChecks++;
         }
-        else if (bigBlind && street > 3 && oppContribution == oppLastContribution)
+        else if (bigBlind && street > 3 && oppContribution == oppLastContribution && !oppBetLastRound)
         {
             std::cout << "Opponent checks from previous street" << std::endl;
             numOppChecks++;
