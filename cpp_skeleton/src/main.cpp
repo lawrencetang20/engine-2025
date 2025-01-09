@@ -314,6 +314,10 @@ struct Bot
     bool threeCheckBluff = false;
     int pmThreeCheckBluff = 0;
 
+    bool oppBetLastRound = false;
+
+    int lastStreet = -1;
+
     std::unordered_map<std::string, int> preflopDict = {
         {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 6}, {"88o", 7}, {"AKs", 8}, {"77o", 9}, {"AQs", 10}, {"AJs", 11}, {"AKo", 12}, {"ATs", 13}, {"AQo", 14}, {"AJo", 15}, {"KQs", 16}, {"KJs", 17}, {"A9s", 18}, {"ATo", 19}, {"66o", 20}, {"A8s", 21}, {"KTs", 22}, {"KQo", 23}, {"A7s", 24}, {"A9o", 25}, {"KJo", 26}, {"55o", 27}, {"QJs", 28}, {"K9s", 29}, {"A5s", 30}, {"A6s", 31}, {"A8o", 32}, {"KTo", 33}, {"QTs", 34}, {"A4s", 35}, {"A7o", 36}, {"K8s", 37}, {"A3s", 38}, {"QJo", 39}, {"K9o", 40}, {"A5o", 41}, {"A6o", 42}, {"Q9s", 43}, {"K7s", 44}, {"JTs", 45}, {"A2s", 46}, {"QTo", 47}, {"44o", 48}, {"A4o", 49}, {"K6s", 50}, {"K8o", 51}, {"Q8s", 52}, {"A3o", 53}, {"K5s", 54}, {"J9s", 55}, {"Q9o", 56}, {"JTo", 57}, {"K7o", 58}, {"A2o", 59}, {"K4s", 60}, {"Q7s", 61}, {"K6o", 62}, {"K3s", 63}, {"T9s", 64}, {"J8s", 65}, {"33o", 66}, {"Q6s", 67}, {"Q8o", 68}, {"K5o", 69}, {"J9o", 70}, {"K2s", 71}, {"Q5s", 72}, {"T8s", 73}, {"K4o", 74}, {"J7s", 75}, {"Q4s", 76}, {"Q7o", 77}, {"T9o", 78}, {"J8o", 79}, {"K3o", 80}, {"Q6o", 81}, {"Q3s", 82}, {"98s", 83}, {"T7s", 84}, {"J6s", 85}, {"K2o", 86}, {"22o", 87}, {"Q2s", 87}, {"Q5o", 89}, {"J5s", 90}, {"T8o", 91}, {"J7o", 92}, {"Q4o", 93}, {"97s", 80}, {"J4s", 95}, {"T6s", 96}, {"J3s", 97}, {"Q3o", 98}, {"98o", 99}, {"87s", 75}, {"T7o", 101}, {"J6o", 102}, {"96s", 103}, {"J2s", 104}, {"Q2o", 105}, {"T5s", 106}, {"J5o", 107}, {"T4s", 108}, {"97o", 109}, {"86s", 110}, {"J4o", 111}, {"T6o", 112}, {"95s", 113}, {"T3s", 114}, {"76s", 80}, {"J3o", 116}, {"87o", 117}, {"T2s", 118}, {"85s", 119}, {"96o", 120}, {"J2o", 121}, {"T5o", 122}, {"94s", 123}, {"75s", 124}, {"T4o", 125}, {"93s", 126}, {"86o", 127}, {"65s", 128}, {"84s", 129}, {"95o", 130}, {"53s", 131}, {"92s", 132}, {"76o", 133}, {"74s", 134}, {"65o", 135}, {"54s", 87}, {"85o", 137}, {"64s", 138}, {"83s", 139}, {"43s", 140}, {"75o", 141}, {"82s", 142}, {"73s", 143}, {"93o", 144}, {"T2o", 145}, {"T3o", 146}, {"63s", 147}, {"84o", 148}, {"92o", 149}, {"94o", 150}, {"74o", 151}, {"72s", 152}, {"54o", 153}, {"64o", 154}, {"52s", 155}, {"62s", 156}, {"83o", 157}, {"42s", 158}, {"82o", 159}, {"73o", 160}, {"53o", 161}, {"63o", 162}, {"32s", 163}, {"43o", 164}, {"72o", 165}, {"52o", 166}, {"62o", 167}, {"42o", 168}, {"32o", 169}};
 
@@ -345,10 +349,12 @@ struct Bot
         twoCheckBluff = false;
         threeCheckBluff = false;
 
+        oppBetLastRound = false;
+
         std::cout << "\nRound " << totalRounds << " starting" << std::endl;
 
         int remainingRounds = numRounds - roundNum + 1;
-        double bankrollThreshold = 1.5 * remainingRounds + bountyConstant * remainingRounds;
+        double bankrollThreshold = 1.5 * remainingRounds + bountyConstant * remainingRounds * 0.4;
 
         int roundedBankrollThreshold = (int)ceil(bankrollThreshold);
 
@@ -777,21 +783,24 @@ struct Bot
         {
             oppLastContribution = oppContribution;
             numOppChecks = 0;
-        }
 
+            std::cout << "Opponent bets" << std::endl;
+            oppBetLastRound = true;
+        }
         else if (!bigBlind && oppPip == 0)
         {
-            std::cout << "Opponent checks" << std::endl;
+            std::cout << "Opponent checks from bb" << std::endl;
             numOppChecks++;
         }
-        else if (bigBlind && street > 3 && oppLastContribution == oppContribution)
+        else if (bigBlind && street > 3 && oppContribution == oppLastContribution)
         {
-            std::cout << "Opponent checks" << std::endl;
+            std::cout << "Opponent checks from previous street" << std::endl;
             numOppChecks++;
         }
 
         if (legalActions.find(Action::Type::CHECK) != legalActions.end())
         {
+            oppBetLastRound = true;
             std::cout << "Able to check or out of position" << std::endl;
 
             if (hasBounty && handStrength < 0.75)
@@ -891,7 +900,7 @@ struct Bot
 
             std::cout << "Changed pot odds: " << changedPotOdds << std::endl;
 
-            if (handStrength < changedPotOdds || handStrength < 0.6 + (street % 3) * 0.03)
+            if (handStrength < changedPotOdds || handStrength < 0.625 + (street % 3) * 0.05) // TODO
             {
                 // TODO MAYBE ADD FLOATING ON THE FLOP?
                 return {{Action::Type::FOLD}, -1};
