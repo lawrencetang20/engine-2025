@@ -800,9 +800,10 @@ struct Bot
 
         if (legalActions.find(Action::Type::CHECK) != legalActions.end())
         {
-            oppBetLastRound = true;
+            oppBetLastRound = false;
             std::cout << "Able to check or out of position" << std::endl;
 
+            // TODO BOUNTY BLUFF RAISE IF IT IS ON THE FLOP
             if (hasBounty && handStrength < 0.75)
             {
                 bountyRaises++;
@@ -900,7 +901,7 @@ struct Bot
 
             std::cout << "Changed pot odds: " << changedPotOdds << std::endl;
 
-            if (handStrength < changedPotOdds || handStrength < 0.625 + (street % 3) * 0.05) // TODO
+            if (handStrength < changedPotOdds || handStrength < 0.625 + (street % 3) * 0.05) // TODO FIX CALLING LOOSE/NIT
             {
                 // TODO MAYBE ADD FLOATING ON THE FLOP?
                 return {{Action::Type::FOLD}, -1};
