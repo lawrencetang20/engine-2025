@@ -314,6 +314,11 @@ struct Bot
     bool threeCheckBluff = false;
     int pmThreeCheckBluff = 0;
 
+    bool permanentNoTwoCheck = false;
+    int twoCheckBluffCounter = 0;
+    bool permanentNoThreeCheck = false;
+    int threeCheckBluffCounter = 0;
+
     bool oppBetLastRound = false;
 
     int lastStreet = -1;
@@ -398,13 +403,27 @@ struct Bot
 
         std::cout << "change in points " << myDelta << std::endl;
         totalRounds++;
+
         if (twoCheckBluff)
         {
             pmTwoCheckBluff += myDelta;
+            twoCheckBluffCounter++;
         }
         if (threeCheckBluff)
         {
             pmThreeCheckBluff += myDelta;
+            threeCheckBluffCounter++;
+        }
+
+        if (pmTwoCheckBluff < -400 && twoCheckBluffCounter > 10)
+        {
+            permanentNoTwoCheck = true;
+            std::cout << "Permanent no two check" << std::endl;
+        }
+        if (pmThreeCheckBluff < -400 && threeCheckBluffCounter > 10)
+        {
+            permanentNoTwoCheck = true;
+            std::cout << "Permanent no three check" << std::endl;
         }
 
         if (totalRounds == numRounds + 1)
@@ -866,7 +885,7 @@ struct Bot
                 numSelfChecks++;
                 return {{Action::Type::CHECK}, -1};
             }
-            else if (numOppChecks == 2)
+            else if (numOppChecks == 2 && !permanentNoTwoCheck)
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -874,7 +893,7 @@ struct Bot
                 twoCheckBluff = true;
                 return {{Action::Type::RAISE}, 2};
             }
-            else if (numOppChecks == 3)
+            else if (numOppChecks == 3 && !permanentNoThreeCheck)
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
