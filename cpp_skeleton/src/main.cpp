@@ -530,7 +530,7 @@ struct Bot
 
         if (newCards.find(myBounty) != std::string::npos)
         {
-            std::cout << "bounty is active" << std::endl;
+            std::cout << "Bounty is ACTIVE from my hand with bounty " << myBounty << std::endl;
             hasBounty = true;
             handStrength = 1;
             std::cout << "changed handStrength to 1" << std::endl;
@@ -747,6 +747,22 @@ struct Bot
         char myBounty = roundState->bounties[active];    // your current bounty rank
         bool bigBlind = (active == 1);                   // true if you are the big blind
 
+
+        auto board = roundState->deck;
+
+        if (!hasBounty)
+        {
+            for (int i = 0; i < street; ++i)
+            {
+                const auto &card = board[i];
+                if (card.find(myBounty) != std::string::npos)
+                {
+                    std::cout << "Bounty is ACTIVE from board with bounty " << myBounty << std::endl;
+                    hasBounty = true;
+                }
+            }
+        }
+
         std::vector<Card> myCards;
         for (const auto &cardStr : roundState->hands[active])
         {
@@ -826,20 +842,22 @@ struct Bot
                 else
                 {
                     std::cout << "I bounty bluff raise #" << bountyRaises << std::endl;
+                    numOppChecks = 0;
+                    numSelfChecks = 0;
                     return {{Action::Type::RAISE}, 4};
                 }
             }
 
             if (hasBounty && handStrength > 0.75)
             {
-                std::cout << "I value bounty raise" << std::endl;
+                std::cout << "I try to value bounty raise" << std::endl;
             }
 
             if ((randPercent < handStrength) && (handStrength >= (0.75 + ((street % 3) * (double)raiseFactor))))
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
-                std::cout << "I raise for value with handStrength " << handStrength << std::endl;
+                std::cout << "I random raise for value with handStrength " << handStrength << std::endl;
                 return {{Action::Type::RAISE}, 1};
             }
             else if (alarmBell && numOppChecks >= 2)
@@ -918,6 +936,8 @@ struct Bot
                 if (handStrength >= reraiseStrength || (handStrength - changedPotOdds > 0.3 && handStrength >= reraiseStrength - 0.05))
                 {
                     std::cout << "I reraise" << std::endl;
+                    numOppChecks = 0;
+                    numSelfChecks = 0;
                     return {{Action::Type::RAISE}, 1};
                 }
             }
