@@ -563,12 +563,12 @@ struct Bot
         }
         else if (bigBlind && timesBetPreflop == 0)
         {
-            if (handStrength < 5 || (handStrength < 88 && pot <= 20))
+            if (handStrength < 9 || (handStrength < 88 && pot <= 20))
             {
                 timesBetPreflop++;
                 myBet = 3 * pot;
 
-                if (oldHandStrength >= 5 && hasBounty)
+                if (oldHandStrength >= 9 && hasBounty)
                 {
                     double realPotOdds = (double)continueCost / (pot + continueCost);
                     double equity = pow((169.0-oldHandStrength) / 169.0, 5.0);
@@ -576,21 +576,22 @@ struct Bot
                     std::cout << "Real pot odds: " << realPotOdds << std::endl;
                     std::cout << "Equity: " << equity << std::endl;
 
-                    if (realPotOdds >= equity && continueCost > 50)
+                    if (realPotOdds >= equity && continueCost > 40)
                     {
                         std::cout << "Bounty hand fold to large bet" << std::endl;
                         return {Action::Type::FOLD};
                     }
+                    
                 }
                
                 if (legalActions.find(Action::Type::RAISE) != legalActions.end())
                 {
-                    std::cout << "2x raise from bb" << std::endl;
+                    std::cout << "3x raise from bb" << std::endl;
                     return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
                 }
                 else if (legalActions.find(Action::Type::CALL) != legalActions.end())
                 {
-                    std::cout << "Call after failed 2x raise from bb" << std::endl;
+                    std::cout << "Call after failed 3x raise from bb" << std::endl;
                     return {Action::Type::CALL};
                 }
                 else
@@ -653,9 +654,14 @@ struct Bot
                     std::cout << "Real pot odds: " << realPotOdds << std::endl;
                     std::cout << "Equity: " << equity << std::endl;
 
-                    if (realPotOdds >= equity && continueCost > 50)
+                    if (realPotOdds >= equity && continueCost > 40)
                     {
                         std::cout << "Bounty hand fold to large bet" << std::endl;
+                        return {Action::Type::FOLD};
+                    }
+                    else if (oldHandStrength > 110)
+                    {
+                        std::cout << "Bounty hand not strong enough and fold" << std::endl;
                         return {Action::Type::FOLD};
                     }
                     else
