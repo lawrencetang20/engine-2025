@@ -313,11 +313,15 @@ struct Bot
     int pmTwoCheckBluff = 0;
     bool threeCheckBluff = false;
     int pmThreeCheckBluff = 0;
+    bool bountyBluff = false;
+    int pmBountyBluff = 0;
 
     bool permanentNoTwoCheck = false;
     int twoCheckBluffCounter = 0;
     bool permanentNoThreeCheck = false;
     int threeCheckBluffCounter = 0;
+    bool permanentNoBountyBluff = false;
+    int bountyBluffCounter = 0;
 
     bool oppBetLastRound = false;
 
@@ -353,6 +357,7 @@ struct Bot
 
         twoCheckBluff = false;
         threeCheckBluff = false;
+        bountyBluff = false;
 
         oppBetLastRound = false;
 
@@ -406,13 +411,21 @@ struct Bot
 
         if (twoCheckBluff)
         {
+            std::cout << "Two check bluff happened this round" << std::endl;
             pmTwoCheckBluff += myDelta;
             twoCheckBluffCounter++;
         }
         if (threeCheckBluff)
         {
+            std::cout << "Three check bluff happened this round" << std::endl;
             pmThreeCheckBluff += myDelta;
             threeCheckBluffCounter++;
+        }
+        if (bountyBluff)
+        {
+            std::cout << "Bounty bluff happened this round" << std::endl;
+            pmBountyBluff += myDelta;
+            bountyBluffCounter++;
         }
 
         if (pmTwoCheckBluff < -400 && twoCheckBluffCounter > 10)
@@ -425,13 +438,18 @@ struct Bot
             permanentNoTwoCheck = true;
             std::cout << "Permanent no three check" << std::endl;
         }
+        if (pmBountyBluff < -600 && bountyBluffCounter > 10)
+        {
+            permanentNoBountyBluff = true;
+            std::cout << "Permanent no bounty bluff" << std::endl;
+        }
 
         if (totalRounds == numRounds + 1)
         {
-            std::cout << "\n"
-                      << std::endl;
+            std::cout << "\n" << std::endl;
             std::cout << "two check bluff: " << pmTwoCheckBluff << std::endl;
             std::cout << "three check bluff: " << pmThreeCheckBluff << std::endl;
+            std::cout << "bounty bluff: " << pmBountyBluff << std::endl;
         }
     }
 
@@ -844,8 +862,7 @@ struct Bot
             oppBetLastRound = false;
             std::cout << "Able to check or out of position" << std::endl;
 
-            // TODO BOUNTY BLUFF RAISE IF IT IS ON THE FLOP
-            if (hasBounty && handStrength < 0.75)
+            if (hasBounty && handStrength < 0.75 && !permanentNoBountyBluff)
             {
                 bountyRaises++;
 
@@ -863,6 +880,7 @@ struct Bot
                     std::cout << "I bounty bluff raise #" << bountyRaises << std::endl;
                     numOppChecks = 0;
                     numSelfChecks = 0;
+                    bountyBluff = true;
                     return {{Action::Type::RAISE}, 4};
                 }
             }
@@ -1173,11 +1191,18 @@ struct Bot
                 numSelfChecks++;
                 if (twoCheckBluff)
                 {
+                    std::cout << "Not actual two check bluff" << std::endl;
                     twoCheckBluff = false;
                 }
                 if (threeCheckBluff)
                 {
+                    std::cout << "Not actual three check bluff" << std::endl;
                     threeCheckBluff = false;
+                }
+                if (bountyBluff)
+                {
+                    std::cout << "Not actual bounty bluff" << std::endl;
+                    bountyBluff = false;
                 }
                 std::cout << "Check after failed call and reraise" << std::endl;
                 return {Action::Type::CHECK};
