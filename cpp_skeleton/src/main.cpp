@@ -428,17 +428,17 @@ struct Bot
             bountyBluffCounter++;
         }
 
-        if (pmTwoCheckBluff < -400 && twoCheckBluffCounter > 10)
+        if (pmTwoCheckBluff < -400 && twoCheckBluffCounter > 7)
         {
             permanentNoTwoCheck = true;
             std::cout << "Permanent no two check" << std::endl;
         }
-        if (pmThreeCheckBluff < -400 && threeCheckBluffCounter > 10)
+        if (pmThreeCheckBluff < -400 && threeCheckBluffCounter > 7)
         {
             permanentNoTwoCheck = true;
             std::cout << "Permanent no three check" << std::endl;
         }
-        if (pmBountyBluff < -600 && bountyBluffCounter > 10)
+        if (pmBountyBluff < -400 && bountyBluffCounter > 12)
         {
             permanentNoBountyBluff = true;
             std::cout << "Permanent no bounty bluff" << std::endl;
