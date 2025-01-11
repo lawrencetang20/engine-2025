@@ -348,9 +348,11 @@ struct Bot
         timesBetPreflop = 0;
 
         if (gameClock < 20){
+            std::cout << "Time is out to 20" << std::endl;
             numMCTrials = 200;
         }
         else if (gameClock < 10){
+            std::cout << "Time is out to 10" << std::endl;
             numMCTrials = 100;
         }
 
