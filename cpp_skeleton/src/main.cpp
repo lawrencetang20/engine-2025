@@ -347,6 +347,13 @@ struct Bot
 
         timesBetPreflop = 0;
 
+        if (gameClock < 20){
+            numMCTrials = 200;
+        }
+        else if (gameClock < 10){
+            numMCTrials = 100;
+        }
+
         hasBounty = false;
         bountyRaises = 0;
         alarmBell = false;
