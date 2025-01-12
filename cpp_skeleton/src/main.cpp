@@ -720,7 +720,7 @@ struct Bot
 
             }
 
-            if (handStrength < 5)
+            if (handStrength <= 5)
             {
                 timesBetPreflop++;
                 myBet = 2 * pot;
@@ -939,7 +939,7 @@ struct Bot
             std::cout << "Opponent raises or reraises" << std::endl;
             int pot = myContribution + oppContribution;
 
-            double realPotOdds = (double)continueCost / (pot + continueCost);
+            double realPotOdds = (double)continueCost / (pot - continueCost); //percent of pot needed to call
 
             std::cout << "Real pot odds: " << realPotOdds << std::endl;
 
@@ -947,33 +947,41 @@ struct Bot
 
             double changedPotOdds = realPotOdds;
 
-            if (realPotOdds > 1.1)
+            if (realPotOdds > 1.6)
             {
-                changedPotOdds = 0.85;
+                changedPotOdds = 0.81 + (street % 3)*0.03;
+            }
+            else if (realPotOdds > 1.1)
+            {
+                changedPotOdds = 0.75 + (street % 3)*0.03;
             }
             else if (realPotOdds > 0.8)
             {
-                changedPotOdds = 0.8;
+                changedPotOdds = 0.65 + (street % 3)*0.03;
             }
             else if (realPotOdds > 0.7)
             {
-                changedPotOdds = 0.7;
+                changedPotOdds = 0.625 + (street % 3)*0.03;
             }
             else
             {
-                changedPotOdds = std::min(realPotOdds + 0.0725, 0.725);
+                changedPotOdds = std::min(realPotOdds + 0.0725, 0.625);
             }
 
             if (realPotOdds < 0.5)
             {
-                changedPotOdds = std::min(realPotOdds + 0.0725, 0.5);
+                changedPotOdds = std::min(realPotOdds + 0.1, 0.5);
             }
 
             std::cout << "Changed pot odds: " << changedPotOdds << std::endl;
 
-            if (handStrength < changedPotOdds || handStrength < 0.625 + (street % 3) * 0.05) // TODO FIX CALLING LOOSE/NIT
+            if (handStrength < changedPotOdds) // TODO FIX CALLING LOOSE/NIT
             {
                 // TODO MAYBE ADD FLOATING ON THE FLOP?
+                return {{Action::Type::FOLD}, -1};
+            }
+            else if (changedPotOdds >= 0.2 && (handStrength < 0.35 + (street%3)*.1)) //only auto fold shitters to decent sized bets
+            {
                 return {{Action::Type::FOLD}, -1};
             }
             else
@@ -1163,13 +1171,18 @@ struct Bot
                 BestHandResult playerBest = evalHand(playerAllCards);
                 BestHandResult oppBest = evalHand(oppAllCards);
 
-                if (playerBest.minVal <= oppBest.minVal)
+                if (playerBest.minVal < oppBest.minVal)
+                {
+                    winCount += 2;
+                }
+                else if (playerBest.minVal < oppBest.minVal)
                 {
                     winCount++;
                 }
             }
 
-            handStrength = (static_cast<double>(winCount) / static_cast<double>(numMCTrials));
+            int divisor = 2*numMCTrials;
+            handStrength = (static_cast<double>(winCount) / static_cast<double>(divisor));
             std::cout << "MC Simulation: " << handStrength << " for street " << street << std::endl;
 
             // add some sort of draw recognition from board + your hand TODO
