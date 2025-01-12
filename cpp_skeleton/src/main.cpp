@@ -884,14 +884,17 @@ struct Bot
                 {
                     std::cout << "I stop bounty bluff raising due to alarm bell preflop" << std::endl;
                 }
-
-                else
+                else if (randPercent < 0.60)
                 {
-                    std::cout << "I bounty bluff raise #" << bountyRaises << std::endl;
+                    std::cout << "I randomly bounty bluff raise #" << bountyRaises << std::endl;
                     numOppChecks = 0;
                     numSelfChecks = 0;
                     bountyBluff = true;
                     return {{Action::Type::RAISE}, 4};
+                }
+                else
+                {
+                    std::cout << "Randomly do not bluff raise bounty" << std::endl;
                 }
             }
 
@@ -1017,7 +1020,7 @@ struct Bot
         // bluffing raise
         if (actionCategory == 4 || actionCategory == 3 || actionCategory == 2)
         {
-            return noIllegalRaises(int((std::max(randPercent + 0.75, 1.1)) * pot), roundState, active);
+            return noIllegalRaises(int((std::max(randPercent + 0.65, 1.1)) * pot), roundState, active);
         }
         // value raise
         else if (actionCategory == 1 && handStrength >= threshold)
