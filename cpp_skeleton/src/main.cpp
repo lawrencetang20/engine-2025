@@ -793,6 +793,7 @@ struct Bot
         char myBounty = roundState->bounties[active];    // your current bounty rank
         bool bigBlind = (active == 1);                   // true if you are the big blind
 
+        int pot = myContribution + oppContribution;
 
         auto board = roundState->deck;
 
@@ -912,7 +913,7 @@ struct Bot
                 numSelfChecks++;
                 return {{Action::Type::CHECK}, -1};
             }
-            else if (numOppChecks == 2 && !permanentNoTwoCheck)
+            else if (numOppChecks == 2 && !permanentNoTwoCheck && pot < 500)
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -920,7 +921,7 @@ struct Bot
                 twoCheckBluff = true;
                 return {{Action::Type::RAISE}, 2};
             }
-            else if (numOppChecks == 3 && !permanentNoThreeCheck)
+            else if (numOppChecks == 3 && !permanentNoThreeCheck && pot < 500)
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -937,7 +938,6 @@ struct Bot
         else
         {
             std::cout << "Opponent raises or reraises" << std::endl;
-            int pot = myContribution + oppContribution;
 
             double realPotOdds = (double)continueCost / (pot + continueCost);
 
@@ -1014,14 +1014,15 @@ struct Bot
 
         double threshold = 0.8 + 0.05 * (street % 3);
 
+        // bluffing raise
         if (actionCategory == 4 || actionCategory == 3 || actionCategory == 2)
         {
-            return noIllegalRaises(int(1.2 * pot), roundState, active);
+            return noIllegalRaises(int((std::max(randPercent + 0.75, 1.1)) * pot), roundState, active);
         }
-
-        if (actionCategory == 1 && handStrength >= threshold)
+        // value raise
+        else if (actionCategory == 1 && handStrength >= threshold)
         {
-            return noIllegalRaises(int((1.2 * pot)), roundState, active);
+            return noIllegalRaises(int((std::max(randPercent + 0.85, 1.2)) * pot), roundState, active);
         }
         else
         {
