@@ -325,10 +325,19 @@ struct Bot
 
     bool oppBetLastRound = false;
 
+    int numOppBetNoCheck = 0;
+    int totalOppChecks = 0;
+    int numOppBets = 0;
+    int numOppPotBets = 0;
+
+
+    int unnitBigBetFact = 0;
+    int bluffCatcherFact = 0;
+
     int lastStreet = -1;
 
     std::unordered_map<std::string, int> preflopDict = {
-        {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 6}, {"88o", 7}, {"AKs", 8}, {"77o", 9}, {"AQs", 10}, {"AJs", 11}, {"AKo", 12}, {"ATs", 13}, {"AQo", 14}, {"AJo", 15}, {"KQs", 16}, {"KJs", 17}, {"A9s", 18}, {"ATo", 19}, {"66o", 20}, {"A8s", 21}, {"KTs", 22}, {"KQo", 23}, {"A7s", 24}, {"A9o", 25}, {"KJo", 26}, {"55o", 27}, {"QJs", 28}, {"K9s", 29}, {"A5s", 30}, {"A6s", 31}, {"A8o", 32}, {"KTo", 33}, {"QTs", 34}, {"A4s", 35}, {"A7o", 36}, {"K8s", 37}, {"A3s", 38}, {"QJo", 39}, {"K9o", 40}, {"A5o", 41}, {"A6o", 42}, {"Q9s", 43}, {"K7s", 44}, {"JTs", 45}, {"A2s", 46}, {"QTo", 47}, {"44o", 48}, {"A4o", 49}, {"K6s", 50}, {"K8o", 51}, {"Q8s", 52}, {"A3o", 53}, {"K5s", 54}, {"J9s", 55}, {"Q9o", 56}, {"JTo", 57}, {"K7o", 58}, {"A2o", 59}, {"K4s", 60}, {"Q7s", 61}, {"K6o", 62}, {"K3s", 63}, {"T9s", 64}, {"J8s", 65}, {"33o", 66}, {"Q6s", 67}, {"Q8o", 68}, {"K5o", 69}, {"J9o", 70}, {"K2s", 71}, {"Q5s", 72}, {"T8s", 73}, {"K4o", 74}, {"J7s", 75}, {"Q4s", 76}, {"Q7o", 77}, {"T9o", 78}, {"J8o", 79}, {"K3o", 80}, {"Q6o", 81}, {"Q3s", 82}, {"98s", 83}, {"T7s", 84}, {"J6s", 85}, {"K2o", 86}, {"22o", 87}, {"Q2s", 87}, {"Q5o", 89}, {"J5s", 90}, {"T8o", 91}, {"J7o", 92}, {"Q4o", 93}, {"97s", 80}, {"J4s", 95}, {"T6s", 96}, {"J3s", 97}, {"Q3o", 98}, {"98o", 99}, {"87s", 75}, {"T7o", 101}, {"J6o", 102}, {"96s", 103}, {"J2s", 104}, {"Q2o", 105}, {"T5s", 106}, {"J5o", 107}, {"T4s", 108}, {"97o", 109}, {"86s", 110}, {"J4o", 111}, {"T6o", 112}, {"95s", 113}, {"T3s", 114}, {"76s", 80}, {"J3o", 116}, {"87o", 117}, {"T2s", 118}, {"85s", 119}, {"96o", 120}, {"J2o", 121}, {"T5o", 122}, {"94s", 123}, {"75s", 124}, {"T4o", 125}, {"93s", 126}, {"86o", 127}, {"65s", 128}, {"84s", 129}, {"95o", 130}, {"53s", 131}, {"92s", 132}, {"76o", 133}, {"74s", 134}, {"65o", 135}, {"54s", 87}, {"85o", 137}, {"64s", 138}, {"83s", 139}, {"43s", 140}, {"75o", 141}, {"82s", 142}, {"73s", 143}, {"93o", 144}, {"T2o", 145}, {"T3o", 146}, {"63s", 147}, {"84o", 148}, {"92o", 149}, {"94o", 150}, {"74o", 151}, {"72s", 152}, {"54o", 153}, {"64o", 154}, {"52s", 155}, {"62s", 156}, {"83o", 157}, {"42s", 158}, {"82o", 159}, {"73o", 160}, {"53o", 161}, {"63o", 162}, {"32s", 163}, {"43o", 164}, {"72o", 165}, {"52o", 166}, {"62o", 167}, {"42o", 168}, {"32o", 169}};
+        {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 6}, {"88o", 7}, {"AKs", 8}, {"77o", 9}, {"AQs", 10}, {"AJs", 11}, {"AKo", 12}, {"ATs", 13}, {"AQo", 14}, {"AJo", 15}, {"KQs", 16}, {"KJs", 17}, {"A9s", 18}, {"ATo", 19}, {"66o", 20}, {"A8s", 21}, {"KTs", 22}, {"KQo", 23}, {"A7s", 24}, {"A9o", 25}, {"KJo", 26}, {"55o", 27}, {"QJs", 28}, {"K9s", 29}, {"A5s", 30}, {"A6s", 31}, {"A8o", 32}, {"KTo", 33}, {"QTs", 34}, {"A4s", 35}, {"A7o", 36}, {"K8s", 37}, {"A3s", 38}, {"QJo", 39}, {"K9o", 40}, {"A5o", 41}, {"A6o", 42}, {"Q9s", 43}, {"K7s", 44}, {"JTs", 45}, {"A2s", 46}, {"QTo", 47}, {"44o", 48}, {"A4o", 49}, {"K6s", 50}, {"K8o", 51}, {"Q8s", 52}, {"A3o", 53}, {"K5s", 54}, {"J9s", 55}, {"Q9o", 56}, {"JTo", 57}, {"K7o", 58}, {"A2o", 59}, {"K4s", 60}, {"Q7s", 61}, {"K6o", 62}, {"K3s", 63}, {"T9s", 64}, {"J8s", 65}, {"33o", 66}, {"Q6s", 67}, {"Q8o", 68}, {"K5o", 69}, {"J9o", 70}, {"K2s", 71}, {"Q5s", 72}, {"T8s", 73}, {"K4o", 74}, {"J7s", 75}, {"Q4s", 76}, {"Q7o", 77}, {"T9o", 78}, {"J8o", 79}, {"K3o", 80}, {"Q6o", 81}, {"Q3s", 82}, {"98s", 83}, {"T7s", 84}, {"J6s", 85}, {"K2o", 86}, {"22o", 87}, {"Q2s", 87}, {"Q5o", 89}, {"J5s", 90}, {"T8o", 91}, {"J7o", 92}, {"Q4o", 93}, {"97s", 80}, {"J4s", 95}, {"T6s", 96}, {"J3s", 97}, {"Q3o", 98}, {"98o", 99}, {"87s", 85}, {"T7o", 101}, {"J6o", 102}, {"96s", 103}, {"J2s", 104}, {"Q2o", 105}, {"T5s", 106}, {"J5o", 107}, {"T4s", 108}, {"97o", 109}, {"86s", 110}, {"J4o", 111}, {"T6o", 112}, {"95s", 113}, {"T3s", 114}, {"76s", 90}, {"J3o", 116}, {"87o", 117}, {"T2s", 118}, {"85s", 119}, {"96o", 120}, {"J2o", 121}, {"T5o", 122}, {"94s", 123}, {"75s", 124}, {"T4o", 125}, {"93s", 126}, {"86o", 127}, {"65s", 128}, {"84s", 129}, {"95o", 130}, {"53s", 131}, {"92s", 132}, {"76o", 133}, {"74s", 134}, {"65o", 135}, {"54s", 130}, {"85o", 137}, {"64s", 138}, {"83s", 139}, {"43s", 140}, {"75o", 141}, {"82s", 142}, {"73s", 143}, {"93o", 144}, {"T2o", 145}, {"T3o", 146}, {"63s", 147}, {"84o", 148}, {"92o", 149}, {"94o", 150}, {"74o", 151}, {"72s", 152}, {"54o", 153}, {"64o", 154}, {"52s", 155}, {"62s", 156}, {"83o", 157}, {"42s", 158}, {"82o", 159}, {"73o", 160}, {"53o", 161}, {"63o", 162}, {"32s", 163}, {"43o", 164}, {"72o", 165}, {"52o", 166}, {"62o", 167}, {"42o", 168}, {"32o", 169}};
 
     /*
       Called when a new round starts. Called NUM_ROUNDS times.
@@ -401,6 +410,7 @@ struct Bot
 
         bool myBountyHit = terminalState->bounty_hits[active];      // true if your bounty hit this round
         bool oppBountyHit = terminalState->bounty_hits[1 - active]; // true if your opponent's bounty hit this round
+        int roundNum = gameState->roundNum;
 
         char bounty_rank = previousState->bounties[active]; // your bounty rank
 
@@ -452,6 +462,49 @@ struct Bot
             permanentNoBountyBluff = true;
             std::cout << "Permanent no bounty bluff" << std::endl;
         }
+        
+        std::cout << "Num opponent Bets: " << numOppBets << std::endl; 
+        std::cout << "Num opponent Pot Bets: " << numOppPotBets << std::endl; 
+        std::cout << "Num opponent Bets vs Checks: " << numOppBetNoCheck << std::endl; 
+        std::cout << "Num opponent Checks: " << totalOppChecks << std::endl; 
+
+
+        if (numOppBets > 8 && (roundNum % 50 == 0))
+        {
+            double OppPotBetPercent = numOppPotBets / static_cast<double>(numOppBets);
+            
+            if (OppPotBetPercent > 0.69) 
+            {
+                std::cout << "HUGE UNNIT" << std::endl;
+                unnitBigBetFact = 2;
+            }
+            else if (OppPotBetPercent > 0.4)
+            {
+                std::cout << "UNNIT" << std::endl;
+                unnitBigBetFact = 1;
+            }
+            else
+            {
+                std::cout << "Oppoent not betting large often" << std::endl;
+                unnitBigBetFact = 0;
+            }
+        }
+
+
+        if (numOppBetNoCheck + totalOppChecks > 15)
+        {
+            double OppBetPercent = numOppBetNoCheck / static_cast<double>(numOppBetNoCheck + totalOppChecks);
+            if (OppBetPercent > 0.5) 
+            {
+                std::cout << "Opponent bluffing A LOT" << std::endl;
+                bluffCatcherFact = 1;
+            }
+            else 
+            {
+                bluffCatcherFact = 0;
+            }
+        }
+
 
         if (totalRounds == numRounds + 1)
         {
@@ -851,6 +904,11 @@ struct Bot
         {
             oppLastContribution = oppContribution;
             numOppChecks = 0;
+            numOppBets++;
+            if (myPip == 0)
+            {
+                numOppBetNoCheck++;
+            }
 
             std::cout << "Opponent bets" << std::endl;
             oppBetLastRound = true;
@@ -859,11 +917,13 @@ struct Bot
         {
             std::cout << "Opponent checks from bb" << std::endl;
             numOppChecks++;
+            totalOppChecks++;
         }
         else if (bigBlind && street > 3 && oppContribution == oppLastContribution && !oppBetLastRound)
         {
             std::cout << "Opponent checks from previous street" << std::endl;
             numOppChecks++;
+            totalOppChecks++;
         }
 
         if (legalActions.find(Action::Type::CHECK) != legalActions.end())
@@ -899,7 +959,7 @@ struct Bot
                 std::cout << "I try to value bounty raise" << std::endl;
             }
 
-            if ((randPercent < handStrength) && (handStrength >= (0.75 + ((street % 3) * (double)raiseFactor))))
+            if ((randPercent < handStrength + 0.15) && (handStrength >= (0.75 + ((street % 3) * (double)raiseFactor))))
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -940,6 +1000,10 @@ struct Bot
             int pot = myContribution + oppContribution;
 
             double realPotOdds = (double)continueCost / (pot - continueCost); //percent of pot needed to call
+            if (realPotOdds > 1.09) 
+            {
+                numOppPotBets++;
+            }
 
             std::cout << "Real pot odds: " << realPotOdds << std::endl;
 
@@ -971,6 +1035,15 @@ struct Bot
             if (realPotOdds < 0.5)
             {
                 changedPotOdds = std::min(realPotOdds + 0.1, 0.5);
+            }
+            else if (realPotOdds >= 1.1) 
+            {
+                changedPotOdds -= 0.06 * unnitBigBetFact;
+            }
+
+            if (myPip == 0)
+            {
+                changedPotOdds -= bluffCatcherFact * 0.1;
             }
 
             std::cout << "Changed pot odds: " << changedPotOdds << std::endl;
@@ -1175,7 +1248,7 @@ struct Bot
                 {
                     winCount += 2;
                 }
-                else if (playerBest.minVal < oppBest.minVal)
+                else if (playerBest.minVal == oppBest.minVal)
                 {
                     winCount++;
                 }
