@@ -485,7 +485,7 @@ struct Bot
             }
             else
             {
-                std::cout << "Oppoent not betting large often" << std::endl;
+                std::cout << "Opponent not betting large often" << std::endl;
                 unnitBigBetFact = 0;
             }
         }
