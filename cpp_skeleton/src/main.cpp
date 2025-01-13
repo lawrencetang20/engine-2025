@@ -296,13 +296,13 @@ struct Bot
 
     bool alreadyWon = false;
 
-    int numMCTrials = 400;
+    int numMCTrials = 600;
 
     int numOppChecks = 0;
     int numSelfChecks = 0;
     int oppLastContribution = 0;
 
-    double raiseFactor = 0.15;
+    double raiseFactor = 0.02;
     double reRaiseFactor = 0.025;
 
     bool hasBounty = false;
@@ -356,13 +356,18 @@ struct Bot
 
         timesBetPreflop = 0;
 
-        if (gameClock < 20){
+        if (gameClock < 30)
+        {
+            std::cout << "Time is out to 30" << std::endl;
+            numMCTrials = 400;
+        }
+        else if (gameClock < 20){
             std::cout << "Time is out to 20" << std::endl;
-            numMCTrials = 200;
+            numMCTrials = 250;
         }
         else if (gameClock < 10){
             std::cout << "Time is out to 10" << std::endl;
-            numMCTrials = 100;
+            numMCTrials = 150;
         }
 
         hasBounty = false;
@@ -963,7 +968,7 @@ struct Bot
                 std::cout << "I try to value bounty raise" << std::endl;
             }
 
-            if ((randPercent < handStrength + 0.15) && (handStrength >= (0.75 + ((street % 3) * (double)raiseFactor))))
+            if (((randPercent < handStrength + 0.15 || street == 5)) && (handStrength >= (0.75 + ((street % 3) * (double)raiseFactor))))
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -1062,7 +1067,7 @@ struct Bot
             }
             else
             {
-                double reraiseStrength = (0.9 + ((street % 3) * reRaiseFactor));
+                double reraiseStrength = (0.85 + ((street % 3) * reRaiseFactor));
                 if (handStrength >= reraiseStrength || (handStrength - changedPotOdds > 0.3 && handStrength >= reraiseStrength - 0.05))
                 {
                     std::cout << "I reraise" << std::endl;
