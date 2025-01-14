@@ -337,7 +337,7 @@ struct Bot
     int lastStreet = -1;
 
     std::unordered_map<std::string, int> preflopDict = {
-        {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 6}, {"88o", 7}, {"AKs", 8}, {"77o", 9}, {"AQs", 10}, {"AJs", 11}, 
+        {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 7}, {"88o", 7}, {"AKs", 6}, {"77o", 9}, {"AQs", 10}, {"AJs", 11}, 
         {"AKo", 12}, {"ATs", 13}, {"AQo", 14}, {"AJo", 15}, {"KQs", 16}, {"KJs", 17}, {"A9s", 18}, {"ATo", 19}, {"66o", 20}, {"A8s", 21}, {"KTs", 22}, 
         {"KQo", 23}, {"A7s", 24}, {"A9o", 25}, {"KJo", 26}, {"55o", 27}, {"QJs", 28}, {"K9s", 29}, {"A5s", 30}, {"A6s", 31}, {"A8o", 32}, {"KTo", 33}, 
         {"QTs", 34}, {"A4s", 35}, {"A7o", 36}, {"K8s", 37}, {"A3s", 38}, {"QJo", 39}, {"K9o", 40}, {"A5o", 41}, {"A6o", 42}, {"Q9s", 43}, {"K7s", 44}, 
@@ -658,7 +658,7 @@ struct Bot
         std::cout << "Hand strength: " << handStrength << std::endl;
         std::cout << "Times bet preflop: " << timesBetPreflop << std::endl;
 
-        if (!bigBlind && timesBetPreflop == 0)
+        if (!bigBlind && timesBetPreflop == 0) //dealer, first to act
         {
             if (handStrength < 26)
             {
@@ -680,7 +680,7 @@ struct Bot
                 return {Action::Type::FOLD};
             }
         }
-        else if (bigBlind && timesBetPreflop == 0)
+        else if (bigBlind && timesBetPreflop == 0) //big blind, haven't acted yet
         {
             if (oppPip == 2) //Opponent calls as dealer
             {
@@ -704,7 +704,7 @@ struct Bot
 
                 if (oldHandStrength >= 9 && hasBounty) //weak hands with bounty
                 {
-                    if ((oldHandStrength <= 71 && oppPip <= 5) || (oldHandStrength <= 56 && oppPip <= 12) || (oldHandStrength <= 18 && oppPip <= 30)) //when to reraise
+                    if ((oldHandStrength <= 71 && oppPip <= 5) || (oldHandStrength <= 56 && oppPip <= 12) || (oldHandStrength <= 18 && oppPip <= 30)) //when to reraise with bounty
                     {
                         if (legalActions.find(Action::Type::RAISE) != legalActions.end())
                         {
@@ -718,10 +718,30 @@ struct Bot
                         }
                         else
                         {
-                            std::cout << "No legal actions found with bounty" << std::endl;
+                            std::cout << "Error: No legal actions found with bounty" << std::endl;
                         }
                     }
-                    else if (oldHandStrength < (89 - pow((oppPip - 2) / 198.0, 1.0 / 3.0) * (88 + 1 - 5)) && oppPip <= 200) // when to call
+                    else if (oppPip > 150)
+                    {
+                        if (oldHandStrength <= 10) //TODO - set calling all in as bb with bounty
+                        {
+                            if (legalActions.find(Action::Type::CALL) != legalActions.end())
+                            {
+                                std::cout << "Call huge bet from oppoent as dealer from bb with bounty" << std::endl;
+                                return {Action::Type::CALL};
+                            }
+                            else
+                            {
+                                std::cout << "Error: No legal actions found with bounty" << std::endl;
+                            }
+                        }
+                        else
+                        {
+                            std::cout << "Bounty hand fold as bb to large bet" << std::endl;
+                            return {Action::Type::FOLD};
+                        }
+                    }
+                    else if (oldHandStrength < (101 - pow((oppPip - 2) / 198.0, 1.0 / 3.0) * (88 + 1 - 5)) && oppPip <= 150) // when to call with bounty in bb
                     {
                         if (legalActions.find(Action::Type::CALL) != legalActions.end())
                         {
@@ -736,7 +756,7 @@ struct Bot
                     }
                     else 
                     {
-                        std::cout << "Bounty hand fold as bb to large bet" << std::endl;
+                        std::cout << "Bounty hand fold as bb" << std::endl;
                         return {Action::Type::FOLD};
                     }
                 }
@@ -756,7 +776,27 @@ struct Bot
                     std::cout << "Error: No legal actions found" << std::endl;
                 }
             }
-            else if (handStrength < (88 + 1 - pow((oppPip - 2) / 198.0, 1.0 / 3.0) * (88 + 1 - 5)) && oppPip <= 200)
+            else if (oppPip > 150)
+            {
+                if (oldHandStrength <= 8) //TODO - set calling all in as bb without bounty (add fact for all in bots)
+                {
+                    if (legalActions.find(Action::Type::CALL) != legalActions.end())
+                    {
+                        std::cout << "Call huge bet from oppoent as dealer from bb" << std::endl;
+                        return {Action::Type::CALL};
+                    }
+                    else
+                    {
+                        std::cout << "Error: No legal actions found" << std::endl;
+                    }
+                }
+                else
+                {
+                    std::cout << "fold as bb to large bet" << std::endl;
+                    return {Action::Type::FOLD};
+                }
+            }
+            else if (handStrength < (90 + 1 - pow((oppPip - 2) / 198.0, 1.0 / 3.0) * (88 + 1 - 5)) && oppPip <= 150)
             {
                 if (legalActions.find(Action::Type::CALL) != legalActions.end())
                 {
@@ -783,39 +823,85 @@ struct Bot
                 }
             }
         }
-        else //any other situation after each team has acted once preflop
+        else if (!bigBlind && timesBetPreflop == 1) //We are dealer, raise, get reraised from bb
         {
-            if (hasBounty)
+            if (hasBounty) 
             {
-                if (oldHandStrength >= 5)
+                if (oldHandStrength <= 8 || (oldHandStrength <= 12 && oppPip <= 50)) // reraise TODO - can change if if we notice opp reraising as bb often.
                 {
-                    double realPotOdds = (double)continueCost / (pot + continueCost);
-                    double equity = pow((169.0-oldHandStrength) / 169.0, 5.0);
-
-                    std::cout << "Real pot odds: " << realPotOdds << std::endl;
-                    std::cout << "Equity: " << equity << std::endl;
-
-                    if (realPotOdds >= equity && continueCost > 40)
+                    timesBetPreflop++;
+                    myBet = 2 * pot;
+                    if (legalActions.find(Action::Type::RAISE) != legalActions.end())
                     {
-                        std::cout << "Bounty hand fold to large bet" << std::endl;
-                        return {Action::Type::FOLD};
+                        std::cout << "2x reraise from raise with bounty" << std::endl;
+                        return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
                     }
-                    else if (oldHandStrength > 110)
+                    else if (legalActions.find(Action::Type::CALL) != legalActions.end())
                     {
-                        std::cout << "Bounty hand not strong enough and fold" << std::endl;
-                        return {Action::Type::FOLD};
+                        std::cout << "Call after failed 2x reraise from raise with bounty" << std::endl;
+                        return {Action::Type::CALL};
                     }
                     else
                     {
-                        std::cout << "Opponent reraised my reraise, action is call with bounty" << std::endl;
-                        alarmBell = true;
+                        std::cout << "Error: No legal actions found" << std::endl;
+                    }
+                }
+                else if (oppPip >= 200) 
+                {
+                    if (oldHandStrength <= 10) //TODO - dealing with all in bots
+                    {
+                        if (legalActions.find(Action::Type::CALL) != legalActions.end())
+                        {
+                            std::cout << "Call huge raise from bb with bounty" << std::endl;
+                            return {Action::Type::CALL};
+                        }
+                        else
+                        {
+                            std::cout << "Error: Check after failed call from reraise otherwise" << std::endl;
+                            return {Action::Type::CHECK};
+                        }
+                    }
+                    else
+                    {
+                        std::cout << "Fold to huge bet from bb with bounty" << std::endl;
+                        return {Action::Type::FOLD};
+                    }
+                }
+                else if (oppPip >= 50 && oppPip <= 200 && (oldHandStrength < (69 - pow((oppPip - 2) / 398.0, 1.0 / 3.0) * 61))) //call with bounty as dealer from bb
+                {
+                    if (legalActions.find(Action::Type::CALL) != legalActions.end())
+                    {
+                        std::cout << "Call from large reraise from bb with bounty" << std::endl;
                         return {Action::Type::CALL};
                     }
+                    else
+                    {
+                        std::cout << "Error: Check after failed call from reraise otherwise" << std::endl;
+                        return {Action::Type::CHECK};
+                    }
+                }
+                else if (oppPip < 50  && (oldHandStrength < (78 - pow((oppPip - 2) / 398.0, 1.0 / 3.0) * 68))) //call with bounty to smaller reraise from bb
+                {
+                    if (legalActions.find(Action::Type::CALL) != legalActions.end())
+                    {
+                        std::cout << "Call from small reraise from bb with bounty" << std::endl;
+                        return {Action::Type::CALL};
+                    }
+                    else
+                    {
+                        std::cout << "Error: Check after failed call from reraise otherwise" << std::endl;
+                        return {Action::Type::CHECK};
+                    }
+                }
+                else
+                {
+                    std::cout << "Fold to reraise from bb with bounty" << std::endl;
+                    return {Action::Type::FOLD};
                 }
 
             }
 
-            if (handStrength <= 5)
+            if (handStrength <= 8 && oppPip < 120) //reraise without bounty, TODO - change reraise amount 
             {
                 timesBetPreflop++;
                 myBet = 2 * pot;
@@ -827,15 +913,15 @@ struct Bot
                 }
                 else if (legalActions.find(Action::Type::CALL) != legalActions.end())
                 {
-                    std::cout << "Error: Call after failed 2x reraise from raise" << std::endl;
+                    std::cout << "Call after failed 2x reraise from raise" << std::endl;
                     return {Action::Type::CALL};
                 }
                 else
                 {
-                    std::cout << "No legal actions found" << std::endl;
+                    std::cout << "Error: No legal actions found" << std::endl;
                 }
             }
-            else if (handStrength < (67 - pow((oppPip - 2) / 398.0, 1.0 / 3.0) * 61))
+            else if (handStrength <= (67 - pow((oppPip - 2) / 398.0, 1.0 / 3.0) * 61)) //call without bounty. TODO - change all in calling if opp is all-in bot
             {
                 if (legalActions.find(Action::Type::CALL) != legalActions.end())
                 {
@@ -848,21 +934,117 @@ struct Bot
                     return {Action::Type::CHECK};
                 }
             }
-            else
+            else //fold without bounty
             {
-                if (legalActions.find(Action::Type::CHECK) != legalActions.end())
+                std::cout << "Fold to reraise from bb" << std::endl;
+                return {Action::Type::FOLD};
+            }
+        }
+        else  //any other situation after each team has acted once preflop
+        {
+            if (hasBounty) 
+            {
+                if (oldHandStrength <= 5) // reraise with bounty
                 {
-                    std::cout << "Check from reraise otherwise" << std::endl;
-                    return {Action::Type::CHECK};
+                    timesBetPreflop++;
+                    myBet = 2 * pot;
+                    if (legalActions.find(Action::Type::RAISE) != legalActions.end())
+                    {
+                        std::cout << "2x reraise from raise with bounty" << std::endl;
+                        return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                    }
+                    else if (legalActions.find(Action::Type::CALL) != legalActions.end())
+                    {
+                        std::cout << "Call after failed 2x reraise from raise with bounty" << std::endl;
+                        return {Action::Type::CALL};
+                    }
+                    else
+                    {
+                        std::cout << "Error: No legal actions found" << std::endl;
+                    }
+                }
+                else if (oppPip >= 250 && continueCost >= 150) //dealing with huge reraises
+                {
+                    if (oldHandStrength <= 10) 
+                    {
+                        if (legalActions.find(Action::Type::CALL) != legalActions.end())
+                        {
+                            std::cout << "Call huge raise with bounty" << std::endl;
+                            return {Action::Type::CALL};
+                        }
+                        else
+                        {
+                            std::cout << "Error: Check after failed call from reraise otherwise" << std::endl;
+                            return {Action::Type::CHECK};
+                        }
+                    }
+                    else
+                    {
+                        std::cout << "Fold to huge bet with bounty" << std::endl;
+                        return {Action::Type::FOLD};
+                    }
+                }
+                else if (oldHandStrength < (78 - pow((oppPip - 2) / 398.0, 1.0 / 3.0) * 68)) //call with bounty
+                {
+                    if (legalActions.find(Action::Type::CALL) != legalActions.end())
+                    {
+                        std::cout << "Call from large reraise with bounty" << std::endl;
+                        return {Action::Type::CALL};
+                    }
+                    else
+                    {
+                        std::cout << "Error: Check after failed call from reraise otherwise" << std::endl;
+                        return {Action::Type::CHECK};
+                    }
                 }
                 else
                 {
-                    std::cout << "Error: Fold after failed check from reraise otherwise" << std::endl;
+                    std::cout << "Fold to reraise with bounty" << std::endl;
                     return {Action::Type::FOLD};
                 }
+
+            }
+
+            if (handStrength <= 5) //reraise without bounty
+            {
+                timesBetPreflop++;
+                myBet = 2 * pot;
+
+                if (legalActions.find(Action::Type::RAISE) != legalActions.end())
+                {
+                    std::cout << "2x reraise from raise" << std::endl;
+                    return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                }
+                else if (legalActions.find(Action::Type::CALL) != legalActions.end())
+                {
+                    std::cout << "Call after failed 2x reraise from raise" << std::endl;
+                    return {Action::Type::CALL};
+                }
+                else
+                {
+                    std::cout << "Error:  legal actions found" << std::endl;
+                }
+            }
+            else if (handStrength <= (68 - pow((oppPip - 2) / 398.0, 1.0 / 3.0) * 61)) //call without bounty // TODO calling all ins?
+            {
+                if (legalActions.find(Action::Type::CALL) != legalActions.end())
+                {
+                    std::cout << "Call from reraise otherwise" << std::endl;
+                    return {Action::Type::CALL};
+                }
+                else
+                {
+                    std::cout << "Error: Check after failed call from reraise otherwise" << std::endl;
+                    return {Action::Type::CHECK};
+                }
+            }
+            else //fold without bounty
+            {
+                std::cout << "Fold to reraise from bb" << std::endl;
+                return {Action::Type::FOLD};
             }
         }
-        std::cout << "SHOULD NEVER BE HERE" << std::endl;
+        std::cout << "Error: SHOULD NEVER BE HERE" << std::endl;
         return {Action::Type::FOLD};
     }
 
