@@ -1116,7 +1116,7 @@ struct Bot
         else
         {
             std::cout << "randPercent" << std::endl;
-            return noIllegalRaises(int(randPercent * 1.75 * pot), roundState, active);
+            return noIllegalRaises(int((randPercent * 1.25 + 0.5) * pot), roundState, active);
         }
     }
 
