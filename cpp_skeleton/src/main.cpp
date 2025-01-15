@@ -334,6 +334,8 @@ struct Bot
     int unnitBigBetFact = 0;
     int bluffCatcherFact = 0;
 
+    int oppNumReraise = 0;
+
     int lastStreet = -1;
 
     std::unordered_map<std::string, int> preflopDict = {
@@ -370,6 +372,7 @@ struct Bot
         bool bigBlind = (active == 1);            // true if you are the big blind
 
         timesBetPreflop = 0;
+        oppNumReraise = 0;
 
         if (gameClock < 30)
         {
@@ -487,6 +490,7 @@ struct Bot
         std::cout << "Num opponent Pot Bets: " << numOppPotBets << std::endl; 
         std::cout << "Num opponent Bets vs Checks: " << numOppBetNoCheck << std::endl; 
         std::cout << "Num opponent Checks: " << totalOppChecks << std::endl; 
+        std::cout << "Num opponent Reraises this round: " << oppNumReraise << std::endl; 
 
 
         if (numOppBets > 8 && (roundNum % 50 == 0))
@@ -684,7 +688,7 @@ struct Bot
         {
             if (oppPip == 2) //Opponent calls as dealer
             {
-                if (handStrength <= 69 && (legalActions.find(Action::Type::RAISE) != legalActions.end()))
+                if (handStrength <= 69 && (legalActions.find(Action::Type::RAISE) != legalActions.end())) //raise with strong hands or bounty
                 {
                     timesBetPreflop++;
                     myBet = 3 * pot;
@@ -704,7 +708,7 @@ struct Bot
 
                 if (oldHandStrength >= 9 && hasBounty) //weak hands with bounty
                 {
-                    if ((oldHandStrength <= 71 && oppPip <= 5) || (oldHandStrength <= 56 && oppPip <= 12) || (oldHandStrength <= 18 && oppPip <= 30)) //when to reraise with bounty
+                    if ((oppPip <= 6) || (oldHandStrength <= 180 && oppPip <= 12) || (oldHandStrength <= 18 && oppPip <= 30)) //when to reraise with bounty
                     {
                         if (legalActions.find(Action::Type::RAISE) != legalActions.end())
                         {
@@ -741,7 +745,7 @@ struct Bot
                             return {Action::Type::FOLD};
                         }
                     }
-                    else if (oldHandStrength < (101 - pow((oppPip - 2) / 198.0, 1.0 / 3.0) * (88 + 1 - 5)) && oppPip <= 150) // when to call with bounty in bb
+                    else if (oldHandStrength < (93 + 1 - pow((oppPip - 2) / 198.0, 1.0 / 3.0) * (88 + 1 - 5)) && oppPip <= 150) // when to call with bounty in bb
                     {
                         if (legalActions.find(Action::Type::CALL) != legalActions.end())
                         {
@@ -796,7 +800,7 @@ struct Bot
                     return {Action::Type::FOLD};
                 }
             }
-            else if (handStrength < (90 + 1 - pow((oppPip - 2) / 198.0, 1.0 / 3.0) * (88 + 1 - 5)) && oppPip <= 150)
+            else if (handStrength < (85 + 1 - pow((oppPip - 2) / 198.0, 1.0 / 3.0) * (88 + 1 - 5)) && oppPip <= 150)
             {
                 if (legalActions.find(Action::Type::CALL) != legalActions.end())
                 {
@@ -846,7 +850,7 @@ struct Bot
                         std::cout << "Error: No legal actions found" << std::endl;
                     }
                 }
-                else if (oppPip >= 200) 
+                else if (oppPip >= 150) 
                 {
                     if (oldHandStrength <= 10) //TODO - dealing with all in bots
                     {
@@ -867,7 +871,7 @@ struct Bot
                         return {Action::Type::FOLD};
                     }
                 }
-                else if (oppPip >= 50 && oppPip <= 200 && (oldHandStrength < (69 - pow((oppPip - 2) / 398.0, 1.0 / 3.0) * 61))) //call with bounty as dealer from bb
+                else if (oppPip >= 50 && oppPip <= 150 && (oldHandStrength < (88 - pow((oppPip - 2) / 198.0, 1.0 / 3.0) * 84))) //call with bounty as dealer from bb
                 {
                     if (legalActions.find(Action::Type::CALL) != legalActions.end())
                     {
@@ -880,7 +884,7 @@ struct Bot
                         return {Action::Type::CHECK};
                     }
                 }
-                else if (oppPip < 50  && (oldHandStrength < (78 - pow((oppPip - 2) / 398.0, 1.0 / 3.0) * 68))) //call with bounty to smaller reraise from bb
+                else if (oppPip < 50  && (oldHandStrength < (75 - pow((oppPip - 2) / 398.0, 1.0 / 3.0) * 68))) //call with bounty to smaller reraise from bb
                 {
                     if (legalActions.find(Action::Type::CALL) != legalActions.end())
                     {
@@ -901,7 +905,7 @@ struct Bot
 
             }
 
-            if (handStrength <= 8 && oppPip < 120) //reraise without bounty, TODO - change reraise amount 
+            if (handStrength <= 8) //reraise without bounty or call big blind raises for more than 150
             {
                 timesBetPreflop++;
                 myBet = 2 * pot;
@@ -921,7 +925,7 @@ struct Bot
                     std::cout << "Error: No legal actions found" << std::endl;
                 }
             }
-            else if (handStrength <= (67 - pow((oppPip - 2) / 398.0, 1.0 / 3.0) * 61)) //call without bounty. TODO - change all in calling if opp is all-in bot
+            else if (oppPip <= 150 && handStrength <= (85 - pow((oppPip - 2) / 198.0, 1.0 / 3.0) * 84)) //call without bounty. TODO - change all in calling if opp is all-in bot
             {
                 if (legalActions.find(Action::Type::CALL) != legalActions.end())
                 {
@@ -963,7 +967,7 @@ struct Bot
                         std::cout << "Error: No legal actions found" << std::endl;
                     }
                 }
-                else if (oppPip >= 250 && continueCost >= 150) //dealing with huge reraises
+                else if (oppPip >= 250 && continueCost >= 100) //dealing with huge reraises
                 {
                     if (oldHandStrength <= 10) 
                     {
@@ -984,7 +988,7 @@ struct Bot
                         return {Action::Type::FOLD};
                     }
                 }
-                else if (oldHandStrength < (78 - pow((oppPip - 2) / 398.0, 1.0 / 3.0) * 68)) //call with bounty
+                else if (oldHandStrength <= (70 - pow((oppPip - 2) / 398.0, 1.0 / 3.0) * 61)) //call with bounty
                 {
                     if (legalActions.find(Action::Type::CALL) != legalActions.end())
                     {
@@ -1133,6 +1137,10 @@ struct Bot
             if (myPip == 0)
             {
                 numOppBetNoCheck++;
+            }
+            else
+            {
+                oppNumReraise++;
             }
 
             std::cout << "Opponent bets" << std::endl;
@@ -1287,7 +1295,14 @@ struct Bot
             else
             {
                 double reraiseStrength = (0.85 + ((street % 3) * reRaiseFactor));
-                if (handStrength >= reraiseStrength || (handStrength - changedPotOdds > 0.3 && handStrength >= reraiseStrength - 0.05))
+                reraiseStrength += oppNumReraise * 0.03;
+                std::cout << "reraise strength: " << reraiseStrength << std::endl;
+                if (reraiseStrength > 0.93)
+                {
+                    reraiseStrength = 0.93;
+                }
+
+                if (handStrength >= reraiseStrength || (handStrength - changedPotOdds > 0.5 && handStrength >= reraiseStrength - 0.05))
                 {
                     std::cout << "I reraise" << std::endl;
                     numOppChecks = 0;
