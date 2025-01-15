@@ -302,8 +302,8 @@ struct Bot
     int numSelfChecks = 0;
     int oppLastContribution = 0;
 
-    double raiseFactor = 0.02;
-    double reRaiseFactor = 0.025;
+    double raiseFactor = 0.025;
+    double reRaiseFactor = 0.02;
 
     bool hasBounty = false;
     int bountyRaises = 0;
@@ -335,6 +335,7 @@ struct Bot
     int bluffCatcherFact = 0;
 
     int oppNumReraise = 0;
+    int oppNumBetsThisRound = 0;
 
     int lastStreet = -1;
 
@@ -373,6 +374,7 @@ struct Bot
 
         timesBetPreflop = 0;
         oppNumReraise = 0;
+        oppNumBetsThisRound = 0;
 
         if (gameClock < 30)
         {
@@ -491,6 +493,7 @@ struct Bot
         std::cout << "Num opponent Bets vs Checks: " << numOppBetNoCheck << std::endl; 
         std::cout << "Num opponent Checks: " << totalOppChecks << std::endl; 
         std::cout << "Num opponent Reraises this round: " << oppNumReraise << std::endl; 
+        std::cout << "Num Opp Bets this round: " << oppNumBetsThisRound << std::endl;
 
 
         if (numOppBets > 8 && (roundNum % 50 == 0))
@@ -1134,6 +1137,7 @@ struct Bot
             oppLastContribution = oppContribution;
             numOppChecks = 0;
             numOppBets++;
+            oppNumBetsThisRound++;
             if (myPip == 0)
             {
                 numOppBetNoCheck++;
@@ -1195,7 +1199,7 @@ struct Bot
                 std::cout << "I try to value bounty raise" << std::endl;
             }
 
-            if (((randPercent < handStrength + 0.15 || street == 5)) && (handStrength >= (0.75 + ((street % 3) * (double)raiseFactor))))
+            if (((randPercent < handStrength + 0.15 || street == 5)) && (handStrength >= (0.75 + ((street % 3) * (double)raiseFactor) + oppNumBetsThisRound * 0.01 + oppNumReraise * 0.05)))
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -1246,17 +1250,17 @@ struct Bot
 
             double changedPotOdds = realPotOdds;
 
-            if (realPotOdds > 1.6)
+            if (realPotOdds > 1.7)
             {
-                changedPotOdds = 0.81 + (street % 3)*0.03;
+                changedPotOdds = 0.81 + (street % 3)*0.02;
             }
             else if (realPotOdds > 1.1)
             {
-                changedPotOdds = 0.75 + (street % 3)*0.03;
+                changedPotOdds = 0.77 + (street % 3)*0.02;
             }
             else if (realPotOdds > 0.8)
             {
-                changedPotOdds = 0.65 + (street % 3)*0.03;
+                changedPotOdds = 0.675 + (street % 3)*0.03;
             }
             else if (realPotOdds > 0.7)
             {
@@ -1266,6 +1270,7 @@ struct Bot
             {
                 changedPotOdds = std::min(realPotOdds + 0.0725, 0.625);
             }
+
 
             if (realPotOdds < 0.5)
             {
@@ -1281,6 +1286,43 @@ struct Bot
                 changedPotOdds -= bluffCatcherFact * 0.1;
             }
 
+            if (realPotOdds > 1.1) //New postflop logic, getting more nitty against opponent reraises and consistent betting
+            {
+                changedPotOdds += 0.04 * oppNumReraise;
+                if (oppNumBetsThisRound > 2)
+                {
+                    changedPotOdds += 0.03;
+                }
+                changedPotOdds = std::min(0.87 + ((street % 3) * 0.015), changedPotOdds);
+            }
+            else if (realPotOdds > 0.7)
+            {
+                changedPotOdds += 0.1 * oppNumReraise;
+                if (oppNumBetsThisRound > 2)
+                {
+                    changedPotOdds += 0.06;
+                }
+                changedPotOdds = std::min(0.86 + ((street % 3) * 0.015), changedPotOdds);
+            }
+            else if (realPotOdds > 0.5)
+            {
+                changedPotOdds += 0.2 * oppNumReraise;
+                if (oppNumBetsThisRound > 2)
+                {
+                    changedPotOdds += 0.15;
+                }
+                changedPotOdds = std::min(0.85 + ((street % 3) * 0.015), changedPotOdds);
+            }
+            else
+            {
+                changedPotOdds += 0.32 * oppNumReraise;
+                if (oppNumBetsThisRound > 2)
+                {
+                    changedPotOdds += 0.2;
+                }
+                changedPotOdds = std::min(0.84 + ((street % 3) * 0.015), changedPotOdds);
+            }
+
             std::cout << "Changed pot odds: " << changedPotOdds << std::endl;
 
             if (handStrength < changedPotOdds) // TODO FIX CALLING LOOSE/NIT
@@ -1294,14 +1336,19 @@ struct Bot
             }
             else
             {
-                double reraiseStrength = (0.85 + ((street % 3) * reRaiseFactor));
+                double reraiseStrength = (0.86 + ((street % 3) * reRaiseFactor));
                 reraiseStrength += oppNumReraise * 0.03;
-                std::cout << "reraise strength: " << reraiseStrength << std::endl;
+                
+                if (realPotOdds > 1.1) //more nitty reraising against huge opponent bets
+                {
+                    reraiseStrength += 0.02 * (2 - unnitBigBetFact);
+                }
                 if (reraiseStrength > 0.93)
                 {
                     reraiseStrength = 0.93;
                 }
 
+                std::cout << "reraise strength: " << reraiseStrength << std::endl;
                 if (handStrength >= reraiseStrength || (handStrength - changedPotOdds > 0.5 && handStrength >= reraiseStrength - 0.05))
                 {
                     std::cout << "I reraise" << std::endl;
