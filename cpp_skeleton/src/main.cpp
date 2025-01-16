@@ -987,7 +987,8 @@ struct Bot
                 {
                     if (legalActions.find(Action::Type::CALL) != legalActions.end())
                         {
-                            std::cout << "Call huge raise with bounty" << std::endl;
+                            std::cout << "WEEEWOOOWEEEWOOO Call huge raise with bounty" << std::endl;
+                            alarmBell = true;
                             return {Action::Type::CALL};
                         }
                         else
@@ -1000,7 +1001,8 @@ struct Bot
                 {
                     if (legalActions.find(Action::Type::CALL) != legalActions.end())
                     {
-                        std::cout << "Call from large reraise with bounty" << std::endl;
+                        std::cout << "WEEEWOOOWEEEWOOO Call from large reraise with bounty" << std::endl;
+                        alarmBell = true;
                         return {Action::Type::CALL};
                     }
                     else
@@ -1041,7 +1043,8 @@ struct Bot
             {
                 if (legalActions.find(Action::Type::CALL) != legalActions.end())
                 {
-                    std::cout << "Call from reraise otherwise" << std::endl;
+                    std::cout << "WEEEWOOOWEEEWOOO Call from reraise otherwise" << std::endl;
+                    alarmBell = true;
                     return {Action::Type::CALL};
                 }
                 else
