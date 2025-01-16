@@ -1252,7 +1252,7 @@ struct Bot
 
             if (realPotOdds > 1.7)
             {
-                changedPotOdds = 0.81 + (street % 3)*0.02;
+                changedPotOdds = 0.81 + (street % 3)*0.03;
             }
             else if (realPotOdds > 1.1)
             {
@@ -1288,7 +1288,7 @@ struct Bot
 
             if (realPotOdds > 1.1) //New postflop logic, getting more nitty against opponent reraises and consistent betting
             {
-                changedPotOdds += 0.04 * oppNumReraise;
+                changedPotOdds += 0.05 * oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
                     changedPotOdds += 0.03;
@@ -1297,16 +1297,16 @@ struct Bot
             }
             else if (realPotOdds > 0.7)
             {
-                changedPotOdds += 0.1 * oppNumReraise;
+                changedPotOdds += 0.15 * oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
-                    changedPotOdds += 0.06;
+                    changedPotOdds += 0.08;
                 }
                 changedPotOdds = std::min(0.86 + ((street % 3) * 0.015), changedPotOdds);
             }
             else if (realPotOdds > 0.5)
             {
-                changedPotOdds += 0.2 * oppNumReraise;
+                changedPotOdds += 0.21 * oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
                     changedPotOdds += 0.15;
