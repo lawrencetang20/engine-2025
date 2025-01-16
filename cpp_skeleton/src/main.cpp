@@ -302,7 +302,7 @@ struct Bot
     int numSelfChecks = 0;
     int oppLastContribution = 0;
 
-    double raiseFactor = 0.025;
+    double raiseFactor = 0.05;
     double reRaiseFactor = 0.02;
 
     bool hasBounty = false;
@@ -333,9 +333,13 @@ struct Bot
 
     int unnitBigBetFact = 0;
     int bluffCatcherFact = 0;
+    int oppReraiseFact = 0;
 
     int oppNumReraise = 0;
     int oppNumBetsThisRound = 0;
+    int ourRaisesThisRound = 0;
+    int ourTotalRaises = 0;
+    int oppTotalReraises = 0;
 
     int lastStreet = -1;
 
@@ -375,6 +379,7 @@ struct Bot
         timesBetPreflop = 0;
         oppNumReraise = 0;
         oppNumBetsThisRound = 0;
+        ourRaisesThisRound = 0;
 
         if (gameClock < 30)
         {
@@ -393,6 +398,10 @@ struct Bot
         hasBounty = false;
         bountyRaises = 0;
         alarmBell = false;
+        if (myBankroll > 1000)
+        {
+            bountyRaises++;
+        }
 
         numOppChecks = 0;
         numSelfChecks = 0;
@@ -532,6 +541,22 @@ struct Bot
             }
         }
 
+        ourTotalRaises += ourRaisesThisRound;
+        oppTotalReraises += oppNumReraise;
+
+        if (ourTotalRaises >= 15 && oppTotalReraises >= 2)
+        {
+            double oppReraisePct = (double)oppTotalReraises / ourTotalRaises;
+            std::cout << "Opponent reraise pct: " << oppReraisePct << std::endl;
+            if (oppReraisePct > 0.125)
+            {
+                oppReraiseFact = 1;
+            }
+            else
+            {
+                oppReraiseFact = 0;
+            }
+        }
 
         if (totalRounds == numRounds + 1)
         {
@@ -1171,12 +1196,12 @@ struct Bot
             totalOppChecks++;
         }
 
-        if (legalActions.find(Action::Type::CHECK) != legalActions.end())
+        if (legalActions.find(Action::Type::CHECK) != legalActions.end()) //Check or Raise
         {
             oppBetLastRound = false;
             std::cout << "Able to check or out of position" << std::endl;
 
-            if (hasBounty && handStrength < 0.75 && !permanentNoBountyBluff)
+            if (hasBounty && handStrength < 0.7 && !permanentNoBountyBluff)
             {
                 bountyRaises++;
 
@@ -1188,11 +1213,29 @@ struct Bot
                 {
                     std::cout << "I stop bounty bluff raising due to alarm bell preflop" << std::endl;
                 }
+                else if (ourRaisesThisRound > 0)
+                {
+                    std::cout << "I stop bounty bluff raising due to us already raising this round" << std::endl;
+                }
+                else if (oppNumBetsThisRound > 1)
+                {
+                    std::cout << "I stop bounty bluff raising due to opp raising twice this round" << std::endl;
+                }
+                else if (street == 3 && handStrength > 0.65)
+                {
+                    std::cout << "Blocker bet with bounty for value: #" << bountyRaises << std::endl;
+                    numOppChecks = 0;
+                    numSelfChecks = 0;
+                    ourRaisesThisRound++;
+                    bountyBluff = true;
+                    return {{Action::Type::RAISE}, 1};
+                }
                 else if (randPercent < 0.60)
                 {
                     std::cout << "I randomly bounty bluff raise #" << bountyRaises << std::endl;
                     numOppChecks = 0;
                     numSelfChecks = 0;
+                    ourRaisesThisRound++;
                     bountyBluff = true;
                     return {{Action::Type::RAISE}, 4};
                 }
@@ -1206,11 +1249,15 @@ struct Bot
             {
                 std::cout << "I try to value bounty raise" << std::endl;
             }
-
-            if (((randPercent < handStrength + 0.15 || street == 5)) && (handStrength >= (0.75 + ((street % 3) * (double)raiseFactor) + oppNumBetsThisRound * 0.01 + oppNumReraise * 0.05)))
+            
+            double raiseStrength = 0.7 + ((street % 3) * (double)raiseFactor) + (double)ourRaisesThisRound*0.01 + (double)oppNumBetsThisRound * 0.02 + (double)oppNumReraise * 0.05;
+            raiseStrength = std::min(raiseStrength, 0.9);
+            std::cout << "Raise Strength: " << raiseStrength << std::endl;
+            if (((randPercent < handStrength + 0.15 || street == 5)) && (handStrength >= raiseStrength))
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
+                ourRaisesThisRound++;
                 std::cout << "I random raise for value with handStrength " << handStrength << std::endl;
                 return {{Action::Type::RAISE}, 1};
             }
@@ -1224,6 +1271,7 @@ struct Bot
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
+                ourRaisesThisRound++;
                 std::cout << "I raise for 2 check bluff" << std::endl;
                 twoCheckBluff = true;
                 return {{Action::Type::RAISE}, 2};
@@ -1232,6 +1280,7 @@ struct Bot
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
+                ourRaisesThisRound++;
                 std::cout << "I raise for 3 check bluff" << std::endl;
                 threeCheckBluff = true;
                 return {{Action::Type::RAISE}, 3};
@@ -1260,75 +1309,82 @@ struct Bot
 
             if (realPotOdds > 1.7)
             {
-                changedPotOdds = 0.81 + (street % 3)*0.03;
+                changedPotOdds = 0.82 + (street % 3)*0.02;
+                changedPotOdds += 0.04 * (double)oppNumReraise;
+                if (oppNumBetsThisRound > 2)
+                {
+                    changedPotOdds += 0.02;
+                }
+                changedPotOdds = std::min(0.87 + ((street % 3) * 0.015), changedPotOdds);
             }
             else if (realPotOdds > 1.1)
             {
                 changedPotOdds = 0.77 + (street % 3)*0.02;
-            }
-            else if (realPotOdds > 0.8)
-            {
-                changedPotOdds = 0.675 + (street % 3)*0.03;
-            }
-            else if (realPotOdds > 0.7)
-            {
-                changedPotOdds = 0.625 + (street % 3)*0.03;
-            }
-            else
-            {
-                changedPotOdds = std::min(realPotOdds + 0.0725, 0.625);
-            }
-
-
-            if (realPotOdds < 0.5)
-            {
-                changedPotOdds = std::min(realPotOdds + 0.1, 0.5);
-            }
-            else if (realPotOdds >= 1.1) 
-            {
-                changedPotOdds -= 0.06 * unnitBigBetFact;
-            }
-
-            if (myPip == 0)
-            {
-                changedPotOdds -= bluffCatcherFact * 0.1;
-            }
-
-            if (realPotOdds > 1.1) //New postflop logic, getting more nitty against opponent reraises and consistent betting
-            {
-                changedPotOdds += 0.05 * oppNumReraise;
+                changedPotOdds += 0.06 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
                     changedPotOdds += 0.03;
                 }
                 changedPotOdds = std::min(0.87 + ((street % 3) * 0.015), changedPotOdds);
             }
-            else if (realPotOdds > 0.7)
+            else if (realPotOdds > 0.8)
             {
-                changedPotOdds += 0.15 * oppNumReraise;
+                changedPotOdds = 0.695 + (street % 3)*0.02;
+                changedPotOdds += 0.135 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
                     changedPotOdds += 0.08;
                 }
                 changedPotOdds = std::min(0.86 + ((street % 3) * 0.015), changedPotOdds);
             }
-            else if (realPotOdds > 0.5)
+            else if (realPotOdds > 0.7)
             {
-                changedPotOdds += 0.21 * oppNumReraise;
+                changedPotOdds = 0.645 + (street % 3)*0.02;
+                changedPotOdds += 0.18 * (double)oppNumReraise;
+                if (oppNumBetsThisRound > 2)
+                {
+                    changedPotOdds += 0.08;
+                }
+                changedPotOdds = std::min(0.86 + ((street % 3) * 0.015), changedPotOdds);
+            }
+            else
+            {
+                changedPotOdds = std::min(realPotOdds + 0.0725, 0.645);
+                changedPotOdds += 0.18 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
                     changedPotOdds += 0.15;
                 }
                 changedPotOdds = std::min(0.85 + ((street % 3) * 0.015), changedPotOdds);
             }
-            else
+
+            if (realPotOdds < 0.5)
             {
-                changedPotOdds += 0.32 * oppNumReraise;
+                changedPotOdds = std::min(realPotOdds + 0.1, 0.575);
+                changedPotOdds += 0.3 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
                     changedPotOdds += 0.2;
                 }
-                changedPotOdds = std::min(0.84 + ((street % 3) * 0.015), changedPotOdds);
+                changedPotOdds = std::min(0.83 + ((street % 3) * 0.015), changedPotOdds);
+            }
+            else if (realPotOdds >= 1.1) 
+            {
+                changedPotOdds -= 0.06 * (double)unnitBigBetFact;
+            }
+
+            if (myPip == 0)
+            {
+                changedPotOdds -= (double)bluffCatcherFact * 0.1;
+            }
+            else
+            {
+                changedPotOdds -= (double)oppReraiseFact * 0.075;
+            }
+
+            if (hasBounty && realPotOdds < 1.1 && oppNumReraise < 1 && oppNumBetsThisRound < 3)
+            {
+                changedPotOdds -= 0.05; //slight unnit with bounty to smaller bets (not reraises or continued betting from opponent)
             }
 
             std::cout << "Changed pot odds: " << changedPotOdds << std::endl;
@@ -1344,7 +1400,7 @@ struct Bot
             }
             else
             {
-                double reraiseStrength = (0.86 + ((street % 3) * reRaiseFactor));
+                double reraiseStrength = (0.86 + ((street % 3) * (double)reRaiseFactor));
                 reraiseStrength += oppNumReraise * 0.03;
                 
                 if (realPotOdds > 1.1) //more nitty reraising against huge opponent bets
@@ -1362,7 +1418,8 @@ struct Bot
                     std::cout << "I reraise" << std::endl;
                     numOppChecks = 0;
                     numSelfChecks = 0;
-                    return {{Action::Type::RAISE}, 1};
+                    ourRaisesThisRound++;
+                    return {{Action::Type::RAISE}, 5};
                 }
             }
             std::cout << "I call" << std::endl;
@@ -1390,22 +1447,44 @@ struct Bot
 
         double randPercent = (rand() / double(RAND_MAX));
 
-        double threshold = 0.8 + 0.05 * (street % 3);
+        double nutsThreshold = 0.87 + 0.02 * (street % 3); //nutted
+        double secondThreshold = 0.80 + 0.03 * (street % 3);
+
 
         // bluffing raise
         if (actionCategory == 4 || actionCategory == 3 || actionCategory == 2)
         {
-            return noIllegalRaises(int((std::max(randPercent + 0.65, 1.1)) * pot), roundState, active);
+            return noIllegalRaises(int((std::max(randPercent + 0.55, 1.1)) * pot), roundState, active); //1.1 - 1.55x pot for bluff
         }
         // value raise
-        else if (actionCategory == 1 && handStrength >= threshold)
+        else if (actionCategory == 5) //reraises
         {
-            return noIllegalRaises(int((std::max(randPercent + 0.85, 1.2)) * pot), roundState, active);
+            return noIllegalRaises(int((std::max(randPercent + 0.7, 1.2)) * pot), roundState, active); //reraises
         }
+        else if (actionCategory == 1 && handStrength >= nutsThreshold)
+        {
+            if (pot >= 20 && street != 5)
+            {
+                return noIllegalRaises(int((std::max(randPercent - 0.1, 0.5)) * pot), roundState, active); //try potting opponent in with the nuts early in hand
+            }
+            else
+            {
+                return noIllegalRaises(int((std::max(randPercent + 0.85, 1.2)) * pot), roundState, active); // 1.2-1.85x pot
+            }
+        }
+        
         else
         {
-            std::cout << "randPercent" << std::endl;
-            return noIllegalRaises(int((randPercent * 1.25 + 0.5) * pot), roundState, active);
+            if (handStrength > secondThreshold)
+            {
+                std::cout << "randPercent" << std::endl;
+                return noIllegalRaises(int((randPercent + 0.5) * pot), roundState, active); //0.5-1.5x pot for value
+            }
+            else
+            {
+                std::cout << "randPercent" << std::endl;  //TODO - blocker bets?? change sizing on slightly weaker value hands to block 
+                return noIllegalRaises(int((randPercent * 0.5 + 0.4) * pot), roundState, active); //0.4-0.9x pot for value
+            }
         }
     }
 
