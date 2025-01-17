@@ -1339,7 +1339,7 @@ struct Bot
             else if (realPotOdds > 0.7)
             {
                 changedPotOdds = 0.645 + (street % 3)*0.02;
-                changedPotOdds += 0.17 * (double)oppNumReraise;
+                changedPotOdds += 0.18 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
                     changedPotOdds += 0.08;
@@ -1349,18 +1349,18 @@ struct Bot
             else
             {
                 changedPotOdds = std::min(realPotOdds + 0.075, 0.645);
-                changedPotOdds += 0.18 * (double)oppNumReraise;
+                changedPotOdds += 0.19 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
                     changedPotOdds += 0.15;
                 }
-                changedPotOdds = std::min(0.815 + ((street % 3) * 0.02), changedPotOdds);
+                changedPotOdds = std::min(0.82 + ((street % 3) * 0.02), changedPotOdds);
             }
 
             if (realPotOdds < 0.5)
             {
                 changedPotOdds = std::min(realPotOdds + 0.1, 0.575);
-                changedPotOdds += 0.28 * (double)oppNumReraise;
+                changedPotOdds += 0.3 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
                     changedPotOdds += 0.2;
