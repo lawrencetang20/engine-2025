@@ -1249,7 +1249,7 @@ struct Bot
                 std::cout << "I try to value bounty raise" << std::endl;
             }
             
-            double raiseStrength = 0.7 + ((street % 3) * (double)raiseFactor) + (double)ourRaisesThisRound*0.01 + (double)oppNumBetsThisRound * 0.02 + (double)oppNumReraise * 0.05;
+            double raiseStrength = 0.7 + ((street % 3) * (double)raiseFactor) + (double)ourRaisesThisRound*0.02 + (double)oppNumBetsThisRound * 0.02 + (double)oppNumReraise * 0.05;
             raiseStrength = std::min(raiseStrength, 0.9);
             std::cout << "Raise Strength: " << raiseStrength << std::endl;
             if (((randPercent < handStrength + 0.15 || street == 5)) && (handStrength >= raiseStrength))
@@ -1312,7 +1312,7 @@ struct Bot
                 changedPotOdds += 0.04 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
-                    changedPotOdds += 0.02;
+                    changedPotOdds += 0.03;
                 }
                 changedPotOdds = std::min(0.86 + ((street % 3) * 0.01), changedPotOdds);
             }
@@ -1322,27 +1322,27 @@ struct Bot
                 changedPotOdds += 0.06 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
-                    changedPotOdds += 0.03;
+                    changedPotOdds += 0.04;
                 }
                 changedPotOdds = std::min(0.86 + ((street % 3) * 0.01), changedPotOdds);
             }
             else if (realPotOdds > 0.8)
             {
-                changedPotOdds = 0.695 + (street % 3)*0.02;
+                changedPotOdds = 0.695 + (street % 3)*0.03;
                 changedPotOdds += 0.135 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
-                    changedPotOdds += 0.08;
+                    changedPotOdds += 0.11;
                 }
                 changedPotOdds = std::min(0.85 + ((street % 3) * 0.01), changedPotOdds);
             }
             else if (realPotOdds > 0.7)
             {
-                changedPotOdds = 0.645 + (street % 3)*0.02;
+                changedPotOdds = 0.645 + (street % 3)*0.03;
                 changedPotOdds += 0.18 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
-                    changedPotOdds += 0.08;
+                    changedPotOdds += 0.14;
                 }
                 changedPotOdds = std::min(0.83 + ((street % 3) * 0.02), changedPotOdds);
             }
@@ -1352,9 +1352,9 @@ struct Bot
                 changedPotOdds += 0.19 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
-                    changedPotOdds += 0.15;
+                    changedPotOdds += 0.19;
                 }
-                changedPotOdds = std::min(0.82 + ((street % 3) * 0.02), changedPotOdds);
+                changedPotOdds = std::min(0.815 + ((street % 3) * 0.02), changedPotOdds);
             }
 
             if (realPotOdds < 0.5)
@@ -1363,7 +1363,7 @@ struct Bot
                 changedPotOdds += 0.3 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
-                    changedPotOdds += 0.2;
+                    changedPotOdds += 0.3;
                 }
                 changedPotOdds = std::min(0.81 + ((street % 3) * 0.02), changedPotOdds);
             }
