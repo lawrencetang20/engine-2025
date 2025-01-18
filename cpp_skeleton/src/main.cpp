@@ -383,7 +383,7 @@ struct Bot
         oppNumBetsThisRound = 0;
         ourRaisesThisRound = 0;
 
-        nitToggle = (myBankroll > 1350) ? false : true;
+        nitToggle = (myBankroll > 1750) ? false : true;
         if (!nitToggle)
         {
             std::cout << "Nit toggle set to FALSE " << nitToggle << std::endl;
@@ -685,12 +685,6 @@ struct Bot
         std::string newCards = categorize_cards(myCards);
 
         int handStrength = preflopDict.find(newCards)->second;
-
-        if (!nitToggle && handStrength > 8)
-        {
-            handStrength = handStrength + 10;
-        }
-
         int oldHandStrength = handStrength;
 
 
@@ -1128,7 +1122,7 @@ struct Bot
 
         if (!nitToggle)
         {
-            handStrength = pow(handStrength,1.3);
+            handStrength = pow(handStrength,1.2);
             std::cout << "NEW HAND STRENGTH: " << handStrength << std::endl;
         }
         auto board = roundState->deck;
