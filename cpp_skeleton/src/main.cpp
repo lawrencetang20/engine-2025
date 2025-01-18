@@ -309,6 +309,8 @@ struct Bot
     int bountyRaises = 0;
     bool alarmBell = false;
 
+    bool nitToggle = true;
+
     bool twoCheckBluff = false;
     int pmTwoCheckBluff = 0;
     bool threeCheckBluff = false;
@@ -380,6 +382,13 @@ struct Bot
         oppNumReraise = 0;
         oppNumBetsThisRound = 0;
         ourRaisesThisRound = 0;
+
+        nitToggle = (myBankroll > 1000) ? false : true;
+        if (!nitToggle)
+        {
+            std::cout << "Nit toggle set to FALSE " << nitToggle << std::endl;
+        }
+
 
         if (gameClock < 30)
         {
@@ -676,7 +685,15 @@ struct Bot
         std::string newCards = categorize_cards(myCards);
 
         int handStrength = preflopDict.find(newCards)->second;
+
+        if (!nitToggle && handStrength > 8)
+        {
+            handStrength = handStrength + 10;
+        }
+
         int oldHandStrength = handStrength;
+
+
 
         if (newCards.find(myBounty) != std::string::npos)
         {
@@ -1093,9 +1110,7 @@ struct Bot
         /*
         returns {action, then action type} pair
         */
-
-        auto legalActions =
-            roundState->legalActions();  // the actions you are allowed to take
+        auto legalActions = roundState->legalActions();  // the actions you are allowed to take
         int street = roundState->street; // 0, 3, 4, or 5 representing pre-flop, flop, turn, or river respectively
         // auto myCards = roundState->hands[active];        // your cards
         // auto boardCards = roundState->deck;              // the board cards
@@ -1111,6 +1126,11 @@ struct Bot
 
         int pot = myContribution + oppContribution;
 
+        if (!nitToggle)
+        {
+            handStrength = pow(handStrength,1.4);
+            std::cout << "NEW HAND STRENGTH: " << handStrength << std::endl;
+        }
         auto board = roundState->deck;
 
         if (!hasBounty)
@@ -1229,7 +1249,7 @@ struct Bot
                     bountyBluff = true;
                     return {{Action::Type::RAISE}, 1};
                 }
-                else if (randPercent < 0.60)
+                else if (randPercent < 0.60 && nitToggle)
                 {
                     std::cout << "I randomly bounty bluff raise #" << bountyRaises << std::endl;
                     numOppChecks = 0;
@@ -1266,7 +1286,7 @@ struct Bot
                 numSelfChecks++;
                 return {{Action::Type::CHECK}, -1};
             }
-            else if (numOppChecks == 2 && !permanentNoTwoCheck && pot < 500)
+            else if (numOppChecks == 2 && !permanentNoTwoCheck && pot < 500 && nitToggle)
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -1275,7 +1295,7 @@ struct Bot
                 twoCheckBluff = true;
                 return {{Action::Type::RAISE}, 2};
             }
-            else if (numOppChecks == 3 && !permanentNoThreeCheck && pot < 500)
+            else if (numOppChecks == 3 && !permanentNoThreeCheck && pot < 500 && nitToggle)
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -1354,7 +1374,7 @@ struct Bot
                 {
                     changedPotOdds += 0.19;
                 }
-                changedPotOdds = std::min(0.815 + ((street % 3) * 0.02), changedPotOdds);
+                changedPotOdds = std::min(0.82 + ((street % 3) * 0.02), changedPotOdds);
             }
 
             if (realPotOdds < 0.5)
@@ -1365,7 +1385,7 @@ struct Bot
                 {
                     changedPotOdds += 0.3;
                 }
-                changedPotOdds = std::min(0.81 + ((street % 3) * 0.02), changedPotOdds);
+                changedPotOdds = std::min(0.815 + ((street % 3) * 0.02), changedPotOdds);
             }
             else if (realPotOdds >= 1.1) 
             {
