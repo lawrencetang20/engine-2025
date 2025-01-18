@@ -383,7 +383,7 @@ struct Bot
         oppNumBetsThisRound = 0;
         ourRaisesThisRound = 0;
 
-        nitToggle = (myBankroll > 1000) ? false : true;
+        nitToggle = (myBankroll > 1350) ? false : true;
         if (!nitToggle)
         {
             std::cout << "Nit toggle set to FALSE " << nitToggle << std::endl;
@@ -1128,7 +1128,7 @@ struct Bot
 
         if (!nitToggle)
         {
-            handStrength = pow(handStrength,1.4);
+            handStrength = pow(handStrength,1.3);
             std::cout << "NEW HAND STRENGTH: " << handStrength << std::endl;
         }
         auto board = roundState->deck;
@@ -1295,7 +1295,7 @@ struct Bot
                 twoCheckBluff = true;
                 return {{Action::Type::RAISE}, 2};
             }
-            else if (numOppChecks == 3 && !permanentNoThreeCheck && pot < 500 && nitToggle)
+            else if (numOppChecks == 3 && !permanentNoThreeCheck && pot < 500)
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -1379,7 +1379,7 @@ struct Bot
 
             if (realPotOdds < 0.5)
             {
-                changedPotOdds = std::min(realPotOdds + 0.1, 0.575);
+                changedPotOdds = std::min(realPotOdds + 0.15, 0.575);
                 changedPotOdds += 0.3 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
