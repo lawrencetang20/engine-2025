@@ -1373,7 +1373,7 @@ struct Bot
 
             if (realPotOdds < 0.5)
             {
-                changedPotOdds = std::min(realPotOdds + 0.15, 0.575);
+                changedPotOdds = std::min(realPotOdds + 0.125, 0.575);
                 changedPotOdds += 0.3 * (double)oppNumReraise;
                 if (oppNumBetsThisRound > 2)
                 {
