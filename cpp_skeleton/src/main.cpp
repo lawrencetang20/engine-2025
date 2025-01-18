@@ -309,6 +309,8 @@ struct Bot
     int bountyRaises = 0;
     bool alarmBell = false;
 
+    bool nitToggle = true;
+
     bool twoCheckBluff = false;
     int pmTwoCheckBluff = 0;
     bool threeCheckBluff = false;
@@ -380,6 +382,11 @@ struct Bot
         oppNumReraise = 0;
         oppNumBetsThisRound = 0;
         ourRaisesThisRound = 0;
+
+        nitToggle = (myBankroll > 800) ? false : true;
+
+        std::cout << "BLUFFING: " << nitToggle << std::endl;
+
 
         if (gameClock < 30)
         {
@@ -676,7 +683,15 @@ struct Bot
         std::string newCards = categorize_cards(myCards);
 
         int handStrength = preflopDict.find(newCards)->second;
+
+        if (!nitToggle && handStrength > 8)
+        {
+            handStrength = handStrength + 10
+        }
+
         int oldHandStrength = handStrength;
+
+
 
         if (newCards.find(myBounty) != std::string::npos)
         {
@@ -1093,7 +1108,6 @@ struct Bot
         /*
         returns {action, then action type} pair
         */
-
         auto legalActions =
             roundState->legalActions();  // the actions you are allowed to take
         int street = roundState->street; // 0, 3, 4, or 5 representing pre-flop, flop, turn, or river respectively
@@ -1111,6 +1125,11 @@ struct Bot
 
         int pot = myContribution + oppContribution;
 
+        if (!nitToggle)
+        {
+            handStrength = pow(handStrength,1.4);
+            std::cout << "NEW HAND STRENGTH: " << handStrength << std::endl;
+        }
         auto board = roundState->deck;
 
         if (!hasBounty)
@@ -1226,7 +1245,7 @@ struct Bot
                     numOppChecks = 0;
                     numSelfChecks = 0;
                     ourRaisesThisRound++;
-                    bountyBluff = true;
+                    bountyBluff = nitToggle;
                     return {{Action::Type::RAISE}, 1};
                 }
                 else if (randPercent < 0.60)
@@ -1235,7 +1254,7 @@ struct Bot
                     numOppChecks = 0;
                     numSelfChecks = 0;
                     ourRaisesThisRound++;
-                    bountyBluff = true;
+                    bountyBluff = nitToggle;
                     return {{Action::Type::RAISE}, 4};
                 }
                 else
@@ -1271,8 +1290,10 @@ struct Bot
                 numOppChecks = 0;
                 numSelfChecks = 0;
                 ourRaisesThisRound++;
+                twoCheckBluff = nitToggle;
+                if(twoCheckBluff){
                 std::cout << "I raise for 2 check bluff" << std::endl;
-                twoCheckBluff = true;
+                }
                 return {{Action::Type::RAISE}, 2};
             }
             else if (numOppChecks == 3 && !permanentNoThreeCheck && pot < 500)
@@ -1280,8 +1301,10 @@ struct Bot
                 numOppChecks = 0;
                 numSelfChecks = 0;
                 ourRaisesThisRound++;
+                threeCheckBluff = nitToggle;
+                if(threeCheckBluff){
                 std::cout << "I raise for 3 check bluff" << std::endl;
-                threeCheckBluff = true;
+                }
                 return {{Action::Type::RAISE}, 3};
             }
 
