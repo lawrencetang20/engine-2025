@@ -422,7 +422,7 @@ struct Bot
 
         oppBetLastRound = false;
 
-        std::cout << "\nRound " << totalRounds << " starting" << std::endl;
+        std::cout << "\nRound #" << totalRounds << " starting" << std::endl;
 
         int remainingRounds = numRounds - roundNum + 1;
         double bankrollThreshold = 1.5 * remainingRounds + bountyConstant * remainingRounds * 0.4;
@@ -512,7 +512,6 @@ struct Bot
         std::cout << "Num opponent Checks: " << totalOppChecks << std::endl; 
         std::cout << "Num opponent Reraises this round: " << oppNumReraise << std::endl; 
         std::cout << "Num Opp Bets this round: " << oppNumBetsThisRound << std::endl;
-
 
         if (numOppBets > 8 && (roundNum % 50 == 0))
         {
@@ -1414,15 +1413,15 @@ struct Bot
             else
             {
                 double reraiseStrength = (0.86 + ((street % 3) * (double)reRaiseFactor));
-                reraiseStrength += oppNumReraise * 0.03;
+                reraiseStrength += oppNumReraise * 0.04; // increase reraise strength if opponent reraises
                 
                 if (realPotOdds > 1.1) //more nitty reraising against huge opponent bets
                 {
                     reraiseStrength += 0.02 * (2 - unnitBigBetFact);
                 }
-                if (reraiseStrength > 0.93)
+                if (reraiseStrength > 0.94) // more nitty cap against reraising
                 {
-                    reraiseStrength = 0.93;
+                    reraiseStrength = 0.94;
                 }
 
                 std::cout << "reraise strength: " << reraiseStrength << std::endl;
