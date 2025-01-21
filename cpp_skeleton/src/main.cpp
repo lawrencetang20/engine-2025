@@ -346,8 +346,8 @@ struct Bot
     int lastStreet = -1;
 
     std::unordered_map<std::string, int> preflopDict = {
-        {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 7}, {"88o", 7}, {"AKs", 6}, {"77o", 9}, {"AQs", 10}, {"AJs", 11}, 
-        {"AKo", 12}, {"ATs", 13}, {"AQo", 14}, {"AJo", 15}, {"KQs", 16}, {"KJs", 17}, {"A9s", 18}, {"ATo", 19}, {"66o", 20}, {"A8s", 21}, {"KTs", 22}, 
+        {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 9}, {"88o", 9}, {"AKs", 6}, {"77o", 11}, {"AQs", 10}, {"AJs", 11}, 
+        {"AKo", 6}, {"ATs", 13}, {"AQo", 14}, {"AJo", 15}, {"KQs", 16}, {"KJs", 17}, {"A9s", 18}, {"ATo", 19}, {"66o", 20}, {"A8s", 21}, {"KTs", 22}, 
         {"KQo", 23}, {"A7s", 24}, {"A9o", 25}, {"KJo", 26}, {"55o", 27}, {"QJs", 28}, {"K9s", 29}, {"A5s", 30}, {"A6s", 31}, {"A8o", 32}, {"KTo", 33}, 
         {"QTs", 34}, {"A4s", 35}, {"A7o", 36}, {"K8s", 37}, {"A3s", 38}, {"QJo", 39}, {"K9o", 40}, {"A5o", 41}, {"A6o", 42}, {"Q9s", 43}, {"K7s", 44}, 
         {"JTs", 45}, {"A2s", 46}, {"QTo", 47}, {"44o", 48}, {"A4o", 49}, {"K6s", 50}, {"K8o", 51}, {"Q8s", 52}, {"A3o", 53}, {"K5s", 54}, {"J9s", 55}, 
@@ -490,17 +490,17 @@ struct Bot
             bountyBluffCounter++;
         }
 
-        if (pmTwoCheckBluff < -400 && twoCheckBluffCounter > 7)
+        if (pmTwoCheckBluff < -300 && twoCheckBluffCounter > 7)
         {
             permanentNoTwoCheck = true;
             std::cout << "Permanent no two check" << std::endl;
         }
-        if (pmThreeCheckBluff < -400 && threeCheckBluffCounter > 7)
+        if (pmThreeCheckBluff < -300 && threeCheckBluffCounter > 7)
         {
             permanentNoTwoCheck = true;
             std::cout << "Permanent no three check" << std::endl;
         }
-        if (pmBountyBluff < -400 && bountyBluffCounter > 12)
+        if (pmBountyBluff < -300 && bountyBluffCounter > 7)
         {
             permanentNoBountyBluff = true;
             std::cout << "Permanent no bounty bluff" << std::endl;
