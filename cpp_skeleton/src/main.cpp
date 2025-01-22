@@ -309,8 +309,8 @@ struct Bot
     int bountyRaises = 0;
     bool alarmBell = false;
 
-    bool nitToggle = true;
-    bool loseToggle = false;
+    bool nitToggle = true; // think reversely
+    bool looseToggle = false;
 
     int oppRaiseAsDealer = 0;
     int oppReraiseAsBB = 0;
@@ -584,7 +584,7 @@ struct Bot
         std::cout << "oppReraiseAsBB: " << oppReraiseAsBB << std::endl;
         std::cout << "ourRaiseAsDealer: " << ourRaiseAsDealer << std::endl;
 
-        if ((float) oppReraiseAsBB / (float) ourRaiseAsDealer > 0.22)
+        if ((float) oppReraiseAsBB / (float) ourRaiseAsDealer > 0.22 && ourRaiseAsDealer > 20)
         {
             oppReRaiseAsBBMore = true;
             std::cout << "oppReRaiseAsBBMore is true" << std::endl;
