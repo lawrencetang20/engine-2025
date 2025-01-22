@@ -539,7 +539,7 @@ struct Bot
         if ((numOppBetNoCheck + totalOppChecks) > 15)
         {
             double OppBetPercent = numOppBetNoCheck / static_cast<double>(numOppBetNoCheck + totalOppChecks);
-            if (OppBetPercent > 0.5) 
+            if (OppBetPercent > 0.44069) 
             {
                 std::cout << "Opponent bluffing A LOT" << std::endl;
                 bluffCatcherFact = 1;
@@ -722,26 +722,61 @@ struct Bot
 
         if (!bigBlind && timesBetPreflop == 0) //dealer, first to act
         {
-            if (handStrength < 26)
+            if (hasBounty)
             {
-                std::cout << "3x raise from sb" << std::endl;
-                timesBetPreflop++;
-                ourRaiseAsDealer++;
-                myBet = 3 * pot;
-                return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
-            }
-            else if ((handStrength < 88 && !oppReRaiseAsBBMore) || (handStrength < 60 && oppReRaiseAsBBMore))
-            {
-                std::cout << "2x raise from sb" << std::endl;
-                timesBetPreflop++;
-                ourRaiseAsDealer++;
-                myBet = 2 * pot;
-                return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                if (bluffCatcherFact == 0 || oldHandStrength < 88)
+                {
+                    std::cout << "3x raise from sb with bounty" << std::endl;
+                    timesBetPreflop++;
+                    ourRaiseAsDealer++;
+                    myBet = 3 * pot;
+                    return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                }
+                else
+                {
+                    //std::cout << "Fold from sb" << std::endl;
+                    return {Action::Type::FOLD};
+                }
             }
             else
             {
-                //std::cout << "Fold from sb" << std::endl;
-                return {Action::Type::FOLD};
+                if (handStrength < 26)
+                {
+                    std::cout << "3x raise from sb" << std::endl;
+                    timesBetPreflop++;
+                    ourRaiseAsDealer++;
+                    myBet = 3 * pot;
+                    return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                }
+                if (bluffCatcherFact == 1)
+                {
+                    if ((handStrength < 58 && !oppReRaiseAsBBMore) || (handStrength < 48 && oppReRaiseAsBBMore))
+                    {
+                        std::cout << "2x raise from sb" << std::endl;
+                        timesBetPreflop++;
+                        ourRaiseAsDealer++;
+                        myBet = 2 * pot;
+                        return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                    }
+                    else
+                    {
+                        //std::cout << "Fold from sb" << std::endl;
+                        return {Action::Type::FOLD};
+                    }
+                }
+                else if ((handStrength < 88 && !oppReRaiseAsBBMore) || (handStrength < 60 && oppReRaiseAsBBMore))
+                {
+                    std::cout << "2x raise from sb" << std::endl;
+                    timesBetPreflop++;
+                    ourRaiseAsDealer++;
+                    myBet = 2 * pot;
+                    return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                }
+                else
+                {
+                    //std::cout << "Fold from sb" << std::endl;
+                    return {Action::Type::FOLD};
+                }
             }
         }
         else if (bigBlind && timesBetPreflop == 0) //big blind, haven't acted yet
@@ -764,8 +799,10 @@ struct Bot
 
             oppRaiseAsDealer++;
 
-            if (((handStrength < 9 || (handStrength <= 61 && oppPip <= 5) || (handStrength <= 46 && oppPip <= 12) || (handStrength <= 12 && oppPip <= 25)) && !oppRaiseAsDealerLess) ||
-                ((handStrength < 9 || (handStrength <= 41 && oppPip <= 5) || (handStrength <= 32 && oppPip <= 12) || (handStrength <= 9 && oppPip <= 25)) && oppRaiseAsDealerLess)
+            if (((((handStrength < 9 || (handStrength <= 61 && oppPip <= 5) || (handStrength <= 46 && oppPip <= 12) || (handStrength <= 12 && oppPip <= 25)) && !oppRaiseAsDealerLess) ||
+                ((handStrength < 9 || (handStrength <= 41 && oppPip <= 5) || (handStrength <= 32 && oppPip <= 12) || (handStrength <= 9 && oppPip <= 25)) && oppRaiseAsDealerLess)) && bluffCatcherFact == 0) ||
+                ((((handStrength < 9 || (handStrength <= 46 && oppPip <= 5) || (handStrength <= 31 && oppPip <= 12) || (handStrength <= 9 && oppPip <= 25)) && !oppRaiseAsDealerLess) ||
+                ((handStrength < 9 || (handStrength <= 32 && oppPip <= 5) || (handStrength <= 25 && oppPip <= 12) || (handStrength <= 9 && oppPip <= 25)) && oppRaiseAsDealerLess)) && bluffCatcherFact == 1)
             )  //Always get here w bounty
             {
                 timesBetPreflop++;
@@ -773,8 +810,10 @@ struct Bot
 
                 if (oldHandStrength >= 9 && hasBounty) //weak hands with bounty
                 {
-                    if (((oppPip <= 6) || (oldHandStrength <= 180 && oppPip <= 12) || (oldHandStrength <= 18 && oppPip <= 30) && !oppRaiseAsDealerLess) ||
-                        ((oldHandStrength <= 88 && oppPip <= 12) || (oldHandStrength <= 12 && oppPip <= 30) && oppRaiseAsDealerLess)
+                    if (((((oppPip <= 6) || (oldHandStrength <= 180 && oppPip <= 12) || (oldHandStrength <= 18 && oppPip <= 30) && !oppRaiseAsDealerLess) ||
+                        ((oldHandStrength <= 88 && oppPip <= 12) || (oldHandStrength <= 12 && oppPip <= 30) && oppRaiseAsDealerLess)) && bluffCatcherFact == 0) ||
+                        ((((oppPip <= 6) || (oldHandStrength <= 61 && oppPip <= 12) || (oldHandStrength <= 14 && oppPip <= 30) && !oppRaiseAsDealerLess) ||
+                        ((oldHandStrength <= 41 && oppPip <= 12) || (oldHandStrength <= 12 && oppPip <= 30) && oppRaiseAsDealerLess)) && bluffCatcherFact == 1)
                     ) //when to reraise with bounty
                     {
                         if (legalActions.find(Action::Type::RAISE) != legalActions.end())
