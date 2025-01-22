@@ -740,7 +740,7 @@ struct Bot
             }
             else
             {
-                std::cout << "Fold from sb" << std::endl;
+                //std::cout << "Fold from sb" << std::endl;
                 return {Action::Type::FOLD};
             }
         }
@@ -840,7 +840,7 @@ struct Bot
                     }
                     else 
                     {
-                        std::cout << "Bounty hand fold as bb" << std::endl;
+                        //std::cout << "Bounty hand fold as bb" << std::endl;
                         return {Action::Type::FOLD};
                     }
                 }
@@ -902,7 +902,7 @@ struct Bot
                 }
                 else
                 {
-                    std::cout << "Fold from bb" << std::endl;
+                    //std::cout << "Fold from bb" << std::endl;
                     return {Action::Type::FOLD};
                 }
             }
@@ -1305,7 +1305,7 @@ struct Bot
                 numOppChecks = 0;
                 numSelfChecks = 0;
                 ourRaisesThisRound++;
-                std::cout << "I random raise for value with handStrength " << handStrength << std::endl;
+                //std::cout << "I random raise for value with handStrength " << handStrength << std::endl;
                 return {{Action::Type::RAISE}, 1};
             }
             else if (alarmBell && numOppChecks >= 2)
@@ -1420,7 +1420,7 @@ struct Bot
                 changedPotOdds -= 0.06 * (double)unnitBigBetFact;
             }
 
-            if (myPip == 0)
+            if (myPip == 0 && oppNumReraise == 0 && oppNumBetsThisRound < 3)
             {
                 changedPotOdds -= (double)bluffCatcherFact * 0.1;
             }
