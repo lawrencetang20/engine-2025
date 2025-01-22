@@ -417,6 +417,8 @@ struct Bot
         if (myBankroll > 1000)
         {
             bountyRaises++;
+            oppReRaiseAsBBMore = true;
+            oppRaiseAsDealerLess = true;
             std::cout << "No more bounty bluff raises" << std::endl;
         }
 
