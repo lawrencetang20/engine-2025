@@ -584,7 +584,7 @@ struct Bot
         std::cout << "oppReraiseAsBB: " << oppReraiseAsBB << std::endl;
         std::cout << "ourRaiseAsDealer: " << ourRaiseAsDealer << std::endl;
 
-        if ((float) oppReraiseAsBB / (float) ourRaiseAsDealer > 0.22 && ourRaiseAsDealer > 20)
+        if ((float) oppReraiseAsBB / (float) ourRaiseAsDealer > 0.22 && ourRaiseAsDealer > 15)
         {
             oppReRaiseAsBBMore = true;
             std::cout << "oppReRaiseAsBBMore is true" << std::endl;
