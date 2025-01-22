@@ -514,12 +514,8 @@ struct Bot
             std::cout << "Permanent no bounty bluff" << std::endl;
         }
         
-        std::cout << "Num opponent Bets: " << numOppBets << std::endl; 
-        std::cout << "Num opponent Pot Bets: " << numOppPotBets << std::endl; 
-        std::cout << "Num opponent Bets vs Checks: " << numOppBetNoCheck << std::endl; 
-        std::cout << "Num opponent Checks: " << totalOppChecks << std::endl; 
-        std::cout << "Num opponent Reraises this round: " << oppNumReraise << std::endl; 
-        std::cout << "Num Opp Bets this round: " << oppNumBetsThisRound << std::endl;
+        std::cout << "Num opponent Bets: " << numOppBets << " || Num opponent Pot Bets: " << numOppPotBets << " || Num opponent Bets vs Checks: " << numOppBetNoCheck << std::endl;
+        std::cout << "Num opponent Checks: " << totalOppChecks << " || Num opponent Reraises this round: " << oppNumReraise << " || Num Opp Bets this round: " << oppNumBetsThisRound << std::endl;
 
         if (numOppBets > 8 && (roundNum % 50 == 0))
         {
@@ -581,9 +577,7 @@ struct Bot
             std::cout << "bounty bluff: " << pmBountyBluff << std::endl;
         }
 
-        std::cout << "oppRaiseAsDealer: " << oppRaiseAsDealer << std::endl;
-        std::cout << "oppReraiseAsBB: " << oppReraiseAsBB << std::endl;
-        std::cout << "ourRaiseAsDealer: " << ourRaiseAsDealer << std::endl;
+        std::cout << "oppRaiseAsDealer: " << oppRaiseAsDealer << " || oppReraiseAsBB: " << oppReraiseAsBB << " || ourRaiseAsDealer: " << ourRaiseAsDealer << std::endl;
 
         if ((float) oppRaiseAsDealer / (float) numRounds * 2.0 < 0.20 && (float) numRounds < 70)
         {
