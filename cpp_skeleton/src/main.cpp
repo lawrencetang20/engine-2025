@@ -514,8 +514,7 @@ struct Bot
             std::cout << "Permanent no bounty bluff" << std::endl;
         }
         
-        std::cout << "Num opponent Bets: " << numOppBets << " || Num opponent Pot Bets: " << numOppPotBets << " || Num opponent Bets vs Checks: " << numOppBetNoCheck << std::endl;
-        std::cout << "Num opponent Checks: " << totalOppChecks << " || Num opponent Reraises this round: " << oppNumReraise << " || Num Opp Bets this round: " << oppNumBetsThisRound << std::endl;
+        std::cout << "Num opponent Bets: " << numOppBets << " || Num opponent Pot Bets: " << numOppPotBets << " || Num opponent Bets vs Checks: " << numOppBetNoCheck << " || Num opponent Checks: " << totalOppChecks << " || Num opponent Reraises this round: " << oppNumReraise << " || Num Opp Bets this round: " << oppNumBetsThisRound << std::endl;
 
         if (numOppBets > 8 && (roundNum % 50 == 0))
         {
@@ -587,7 +586,6 @@ struct Bot
         else
         {
             oppRaiseAsDealerLess = false;
-            std::cout << "oppRaiseAsDealerLess is false" << std::endl;
         }
 
         if ((float) oppReraiseAsBB / (float) ourRaiseAsDealer > 0.22 && ourRaiseAsDealer > 15)
@@ -598,7 +596,6 @@ struct Bot
         else
         {
             oppReRaiseAsBBMore = false;
-            std::cout << "oppReRaiseAsBBMore is false" << std::endl;
         }
     }
 
@@ -1564,12 +1561,10 @@ struct Bot
         {
             if (legalActions.find(Action::Type::CHECK) != legalActions.end())
             {
-                std::cout << "Check bc already won" << std::endl;
                 return {Action::Type::CHECK};
             }
             else
             {
-                std::cout << "Fold bc already won" << std::endl;
                 return {Action::Type::FOLD};
             }
         }
