@@ -310,6 +310,13 @@ struct Bot
     bool alarmBell = false;
 
     bool nitToggle = true;
+    bool loseToggle = false;
+
+    int oppRaiseAsDealer = 0;
+    int oppReraiseAsBB = 0;
+    int ourRaiseAsDealer = 0;
+
+    bool oppReRaiseAsBBMore = true;
 
     bool twoCheckBluff = false;
     int pmTwoCheckBluff = 0;
@@ -332,7 +339,6 @@ struct Bot
     int numOppBets = 0;
     int numOppPotBets = 0;
 
-
     int unnitBigBetFact = 0;
     int bluffCatcherFact = 0;
     int oppReraiseFact = 0;
@@ -346,7 +352,7 @@ struct Bot
     int lastStreet = -1;
 
     std::unordered_map<std::string, int> preflopDict = {
-        {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 9}, {"88o", 9}, {"AKs", 6}, {"77o", 11}, {"AQs", 10}, {"AJs", 11}, 
+        {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 10}, {"88o", 10}, {"AKs", 6}, {"77o", 11}, {"AQs", 9}, {"AJs", 11}, 
         {"AKo", 6}, {"ATs", 13}, {"AQo", 14}, {"AJo", 15}, {"KQs", 16}, {"KJs", 17}, {"A9s", 18}, {"ATo", 19}, {"66o", 20}, {"A8s", 21}, {"KTs", 22}, 
         {"KQo", 23}, {"A7s", 24}, {"A9o", 25}, {"KJo", 26}, {"55o", 27}, {"QJs", 28}, {"K9s", 29}, {"A5s", 30}, {"A6s", 31}, {"A8o", 32}, {"KTo", 33}, 
         {"QTs", 34}, {"A4s", 35}, {"A7o", 36}, {"K8s", 37}, {"A3s", 38}, {"QJo", 39}, {"K9o", 40}, {"A5o", 41}, {"A6o", 42}, {"Q9s", 43}, {"K7s", 44}, 
@@ -410,6 +416,7 @@ struct Bot
         if (myBankroll > 1000)
         {
             bountyRaises++;
+            std::cout << "No more bounty bluff raises" << std::endl;
         }
 
         numOppChecks = 0;
@@ -572,6 +579,21 @@ struct Bot
             std::cout << "three check bluff: " << pmThreeCheckBluff << std::endl;
             std::cout << "bounty bluff: " << pmBountyBluff << std::endl;
         }
+
+        std::cout << "oppRaiseAsDealer: " << oppRaiseAsDealer << std::endl;
+        std::cout << "oppReraiseAsBB: " << oppReraiseAsBB << std::endl;
+        std::cout << "ourRaiseAsDealer: " << ourRaiseAsDealer << std::endl;
+
+        if ((float) oppReraiseAsBB / (float) ourRaiseAsDealer > 0.22)
+        {
+            oppReRaiseAsBBMore = true;
+            std::cout << "oppReRaiseAsBBMore is true" << std::endl;
+        }
+        else
+        {
+            oppReRaiseAsBBMore = false;
+            std::cout << "oppReRaiseAsBBMore is false" << std::endl;
+        }
     }
 
     int get_rank_index(char rank)
@@ -686,8 +708,6 @@ struct Bot
         int handStrength = preflopDict.find(newCards)->second;
         int oldHandStrength = handStrength;
 
-
-
         if (newCards.find(myBounty) != std::string::npos)
         {
             std::cout << "Bounty is ACTIVE from my hand with bounty " << myBounty << std::endl;
@@ -705,13 +725,15 @@ struct Bot
             {
                 std::cout << "3x raise from sb" << std::endl;
                 timesBetPreflop++;
+                ourRaiseAsDealer++;
                 myBet = 3 * pot;
                 return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
             }
-            else if (handStrength < 88)
+            else if ((handStrength < 88 && !oppReRaiseAsBBMore) || (handStrength < 60 && oppReRaiseAsBBMore))
             {
                 std::cout << "2x raise from sb" << std::endl;
                 timesBetPreflop++;
+                ourRaiseAsDealer++;
                 myBet = 2 * pot;
                 return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
             }
@@ -879,9 +901,12 @@ struct Bot
         }
         else if (!bigBlind && timesBetPreflop == 1) //We are dealer, raise, get reraised from bb
         {
+            oppReraiseAsBB++;
             if (hasBounty) 
             {
-                if (oldHandStrength <= 8 || (oldHandStrength <= 12 && oppPip <= 50)) // reraise w bounty - can change if if we notice opp reraising as bb often.
+                if (((oldHandStrength <= 8 || (oldHandStrength <= 12 && oppPip <= 50)) && !oppReRaiseAsBBMore) ||
+                    ((oldHandStrength <= 16 || (oldHandStrength <= 19 && oppPip <= 50)) && oppReRaiseAsBBMore) 
+                ) // reraise w bounty - can change if if we notice opp reraising as bb often.
                 {
                     timesBetPreflop++;
                     myBet = 2 * pot;
@@ -955,7 +980,9 @@ struct Bot
 
             }
 
-            if (handStrength <= 8) //reraise without bounty or call big blind raises for more than 150
+            if (((handStrength <= 8) && !oppReRaiseAsBBMore) ||
+                ((handStrength <= 9 || (handStrength <= 15 && oppPip <= 50)) && oppReRaiseAsBBMore)
+            ) //reraise without bounty or call big blind raises for more than 150
             {
                 timesBetPreflop++;
                 myBet = 2 * pot;
