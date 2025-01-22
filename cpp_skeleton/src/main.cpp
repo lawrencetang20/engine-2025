@@ -476,7 +476,6 @@ struct Bot
         //     std::cout << "Opponent hit their bounty of " << opponent_bounty_rank << "!" << std::endl;
         // }
 
-        std::cout << "change in points " << myDelta << std::endl;
         totalRounds++;
 
         if (twoCheckBluff)
@@ -720,7 +719,6 @@ struct Bot
         }
 
         std::cout << "Hand strength: " << handStrength << std::endl;
-        std::cout << "Times bet preflop: " << timesBetPreflop << std::endl;
 
         if (!bigBlind && timesBetPreflop == 0) //dealer, first to act
         {
@@ -1570,7 +1568,6 @@ struct Bot
         }
         if (street == 0)
         {
-            std::cout << "Preflop action" << std::endl;
             return getPreflopAction(roundState, active);
         }
         else
@@ -1581,7 +1578,6 @@ struct Bot
                 oppLastContribution = oppContribution;
             }
 
-            std::cout << "Postflop action" << std::endl;
             std::vector<Card> allCards;
 
             int winCount = 0;
