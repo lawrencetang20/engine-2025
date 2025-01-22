@@ -316,7 +316,8 @@ struct Bot
     int oppReraiseAsBB = 0;
     int ourRaiseAsDealer = 0;
 
-    bool oppReRaiseAsBBMore = true;
+    bool oppReRaiseAsBBMore = false;
+    bool oppRaiseAsDealerLess = false;
 
     bool twoCheckBluff = false;
     int pmTwoCheckBluff = 0;
@@ -584,6 +585,17 @@ struct Bot
         std::cout << "oppReraiseAsBB: " << oppReraiseAsBB << std::endl;
         std::cout << "ourRaiseAsDealer: " << ourRaiseAsDealer << std::endl;
 
+        if ((float) oppRaiseAsDealer / (float) numRounds * 2.0 < 0.20 && (float) numRounds < 70)
+        {
+            oppRaiseAsDealerLess = true;
+            std::cout << "oppRaiseAsDealerLess is true" << std::endl;
+        }
+        else
+        {
+            oppRaiseAsDealerLess = false;
+            std::cout << "oppRaiseAsDealerLess is false" << std::endl;
+        }
+
         if ((float) oppReraiseAsBB / (float) ourRaiseAsDealer > 0.22 && ourRaiseAsDealer > 15)
         {
             oppReRaiseAsBBMore = true;
@@ -760,14 +772,21 @@ struct Bot
                     return {Action::Type::CHECK};
                 }
             }
-            else if (handStrength < 9 || (handStrength <= 61 && oppPip <= 5) || (handStrength <= 46 && oppPip <= 12) || (handStrength <= 12 && oppPip <= 25))  //Always get here w bounty
+
+            oppRaiseAsDealer++;
+
+            if (((handStrength < 9 || (handStrength <= 61 && oppPip <= 5) || (handStrength <= 46 && oppPip <= 12) || (handStrength <= 12 && oppPip <= 25)) && !oppRaiseAsDealerLess) ||
+                ((handStrength < 9 || (handStrength <= 41 && oppPip <= 5) || (handStrength <= 32 && oppPip <= 12) || (handStrength <= 9 && oppPip <= 25)) && oppRaiseAsDealerLess)
+            )  //Always get here w bounty
             {
                 timesBetPreflop++;
                 myBet = 3 * pot;
 
                 if (oldHandStrength >= 9 && hasBounty) //weak hands with bounty
                 {
-                    if ((oppPip <= 6) || (oldHandStrength <= 180 && oppPip <= 12) || (oldHandStrength <= 18 && oppPip <= 30)) //when to reraise with bounty
+                    if (((oppPip <= 6) || (oldHandStrength <= 180 && oppPip <= 12) || (oldHandStrength <= 18 && oppPip <= 30) && !oppRaiseAsDealerLess) ||
+                        ((oldHandStrength <= 88 && oppPip <= 12) || (oldHandStrength <= 12 && oppPip <= 30) && oppRaiseAsDealerLess)
+                    ) //when to reraise with bounty
                     {
                         if (legalActions.find(Action::Type::RAISE) != legalActions.end())
                         {
