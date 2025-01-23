@@ -533,7 +533,7 @@ struct Bot
             }
             else
             {
-                std::cout << "Opponent not betting large often" << std::endl;
+                std::cout << "Opp not betting large often" << std::endl;
                 unnitBigBetFact = 0;
             }
         }
@@ -543,7 +543,7 @@ struct Bot
             double OppBetPercent = numOppBetNoCheck / static_cast<double>(numOppBetNoCheck + totalOppChecks);
             if (OppBetPercent > 0.44069) 
             {
-                std::cout << "Opponent bluffing A LOT" << std::endl;
+                std::cout << "Opp bluffing A LOT" << std::endl;
                 bluffCatcherFact = 1;
             }
             else 
@@ -558,7 +558,7 @@ struct Bot
         if (ourTotalRaises >= 15 && oppTotalReraises >= 2)
         {
             double oppReraisePct = (double)oppTotalReraises / ourTotalRaises;
-            std::cout << "Opponent reraise pct: " << oppReraisePct << std::endl;
+            std::cout << "Opp reraise pct: " << oppReraisePct << std::endl;
             if (oppReraisePct > 0.125)
             {
                 oppReraiseFact = 1;
