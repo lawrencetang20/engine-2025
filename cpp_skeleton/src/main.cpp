@@ -789,12 +789,12 @@ struct Bot
                 {
                     timesBetPreflop++;
                     myBet = 3 * pot;
-                    std::cout << "Opponent calls as dealer, 3x raise from bb" << std::endl;
+                    std::cout << "Opp calls as dealer, 3x raise from bb" << std::endl;
                     return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
                 }
                 else
                 {
-                    std::cout << "Opponent calls as dealer, check after failed 3x raise as bb" << std::endl;
+                    std::cout << "Opp calls as dealer, check after failed 3x raise as bb" << std::endl;
                     return {Action::Type::CHECK};
                 }
             }
@@ -1268,18 +1268,18 @@ struct Bot
                 oppNumReraise++;
             }
 
-            std::cout << "Opponent bets" << std::endl;
+            std::cout << "Opp bets" << std::endl;
             oppBetLastRound = true;
         }
         else if (!bigBlind && oppPip == 0)
         {
-            std::cout << "Opponent checks from bb" << std::endl;
+            std::cout << "Opp checks from bb" << std::endl;
             numOppChecks++;
             totalOppChecks++;
         }
         else if (bigBlind && street > 3 && oppContribution == oppLastContribution && !oppBetLastRound)
         {
-            std::cout << "Opponent checks from previous street" << std::endl;
+            std::cout << "Opp checks from prev street" << std::endl;
             numOppChecks++;
             totalOppChecks++;
         }
@@ -1337,11 +1337,20 @@ struct Bot
             {
                 std::cout << "I try to value bounty raise" << std::endl;
             }
-            
+
             double raiseStrength = 0.7 + ((street % 3) * (double)raiseFactor) + (double)ourRaisesThisRound*0.02 + (double)oppNumBetsThisRound * 0.02 + (double)oppNumReraise * 0.05;
             raiseStrength = std::min(raiseStrength, 0.9);
             std::cout << "Raise Strength: " << raiseStrength << std::endl;
-            if (((randPercent < handStrength + 0.15 || street == 5)) && (handStrength >= raiseStrength))
+
+            double checkNutsStrength = 0.815 + 0.03 * (street % 3);
+            if (bigBlind && bluffCatcherFact == 1 && randPercent < 0.75 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
+            {
+                std::cout << "I check for deception against aggressive team with strong hand" << std::endl;
+                numSelfChecks++;
+                return {{Action::Type::CHECK}, -1};
+            }
+
+            else if (((randPercent < handStrength + 0.15 || street == 5)) && (handStrength >= raiseStrength))
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -1355,7 +1364,7 @@ struct Bot
                 numSelfChecks++;
                 return {{Action::Type::CHECK}, -1};
             }
-            else if (numOppChecks == 2 && !permanentNoTwoCheck && pot < 500 && nitToggle)
+            else if (numOppChecks == 2 && !permanentNoTwoCheck && pot < 250 && nitToggle)
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -1364,7 +1373,7 @@ struct Bot
                 twoCheckBluff = true;
                 return {{Action::Type::RAISE}, 2};
             }
-            else if (numOppChecks == 3 && !permanentNoThreeCheck && pot < 500)
+            else if (numOppChecks == 3 && !permanentNoThreeCheck && pot < 250)
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -1381,7 +1390,7 @@ struct Bot
         // opponent raises or reraises
         else
         {
-            std::cout << "Opponent raises or reraises" << std::endl;
+            std::cout << "Opp raises/reraises" << std::endl;
 
             double realPotOdds = (double)continueCost / (pot - continueCost); //percent of pot needed to call
             if (realPotOdds > 1.09) 
@@ -1461,7 +1470,7 @@ struct Bot
                 changedPotOdds -= 0.06 * (double)unnitBigBetFact;
             }
 
-            if (myPip == 0 && oppNumReraise == 0 && oppNumBetsThisRound < 3)
+            if (myPip == 0 && oppNumReraise == 0 && realPotOdds > 0.425 && realPotOdds < 1.4)
             {
                 changedPotOdds -= (double)bluffCatcherFact * 0.1;
             }
@@ -1493,21 +1502,41 @@ struct Bot
                 
                 if (realPotOdds > 1.1) //more nitty reraising against huge opponent bets
                 {
-                    reraiseStrength += 0.02 * (2 - unnitBigBetFact);
+                    reraiseStrength += 0.01 * (2 - unnitBigBetFact);
                 }
                 if (reraiseStrength > 0.94) // more nitty cap against reraising
                 {
                     reraiseStrength = 0.94;
                 }
+                double randPercent3 = (rand() / double(RAND_MAX));
 
-                std::cout << "reraise strength: " << reraiseStrength << std::endl;
                 if (handStrength >= reraiseStrength || (handStrength - changedPotOdds > 0.5 && handStrength >= reraiseStrength - 0.05))
                 {
-                    std::cout << "I reraise" << std::endl;
-                    numOppChecks = 0;
-                    numSelfChecks = 0;
-                    ourRaisesThisRound++;
-                    return {{Action::Type::RAISE}, 5};
+                    if (street == 3 || (street == 4 && randPercent3 < 0.75 && bluffCatcherFact == 1))
+                    {
+                        double randPercent2 = (rand() / double(RAND_MAX));
+                        if (pot < 100 && (randPercent2 < 0.5 || (randPercent2 < 0.85 && bluffCatcherFact == 1)))
+                        {
+                            std::cout << "I call with nuts for deception" << std::endl;
+                            return {{Action::Type::CALL}, -1};
+                        }
+                        else
+                        {
+                            std::cout << "I min-click reraise for max value" << std::endl;
+                            numOppChecks = 0;
+                            numSelfChecks = 0;
+                            ourRaisesThisRound++;
+                            return {{Action::Type::RAISE}, 6};
+                        }
+                    }
+                    else
+                    {
+                        std::cout << "I reraise" << std::endl;
+                        numOppChecks = 0;
+                        numSelfChecks = 0;
+                        ourRaisesThisRound++;
+                        return {{Action::Type::RAISE}, 5};
+                    }
                 }
             }
             std::cout << "I call" << std::endl;
@@ -1548,6 +1577,10 @@ struct Bot
         else if (actionCategory == 5) //reraises
         {
             return noIllegalRaises(int((std::max(randPercent + 0.7, 1.2)) * pot), roundState, active); //reraises
+        }
+        else if (actionCategory == 6) //min click reraise
+        {
+            return noIllegalRaises(1, roundState, active); //reraises
         }
         else if (actionCategory == 1 && handStrength >= nutsThreshold)
         {
