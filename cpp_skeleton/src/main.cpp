@@ -316,7 +316,7 @@ struct Bot
     int oppReraiseAsBB = 0;
     int ourRaiseAsDealer = 0;
 
-    bool oppReRaiseAsBBMore = false;
+    bool oppReRaiseAsBBMore = true;
     bool oppRaiseAsDealerLess = true;
 
     bool twoCheckBluff = false;
@@ -349,6 +349,8 @@ struct Bot
     int ourRaisesThisRound = 0;
     int ourTotalRaises = 0;
     int oppTotalReraises = 0;
+
+    double alreadyWonConst = 0.25;
 
     int lastStreet = -1;
 
@@ -435,7 +437,23 @@ struct Bot
         std::cout << "\nRound #" << totalRounds << " starting" << std::endl;
 
         int remainingRounds = numRounds - roundNum + 1;
-        double bankrollThreshold = 1.5 * remainingRounds + bountyConstant * remainingRounds * 0.4;
+
+        
+        if (remainingRounds > 300)
+        {
+            alreadyWonConst = 0.25;
+        }
+        else if (!alreadyWon && remainingRounds > 150 && remainingRounds <= 300)
+        {
+            alreadyWonConst = 0.275;
+        }
+        else if (!alreadyWon && remainingRounds < 150)
+        {
+            alreadyWonConst = 0.35;
+        }
+
+        std::cout << "\nRound #" << totalRounds << " : " << alreadyWonConst << std::endl;
+        double bankrollThreshold = 1.5 * remainingRounds + bountyConstant * remainingRounds * alreadyWonConst + 53;
 
         int roundedBankrollThreshold = (int)ceil(bankrollThreshold);
 
@@ -443,6 +461,14 @@ struct Bot
         {
             alreadyWon = true;
             std::cout << "Already won" << std::endl;
+        }
+        else
+        {
+            if (alreadyWon)
+            {
+                std::cout << "Error: Switching from already won to not - BAD" << std::endl;
+            }
+            alreadyWon = false;
         }
     }
 
@@ -579,17 +605,17 @@ struct Bot
 
         std::cout << "oppRaiseAsDealer: " << oppRaiseAsDealer << " || oppReraiseAsBB: " << oppReraiseAsBB << " || ourRaiseAsDealer: " << ourRaiseAsDealer << std::endl;
 
-        if ((((float) oppRaiseAsDealer / (float) roundNum) < 0.10) && roundNum > 60)
+        if ((((float) oppRaiseAsDealer / (float) roundNum) < 0.2) || roundNum < 80)
         {
             oppRaiseAsDealerLess = true;
             std::cout << "oppRaiseAsDealerLess is true" << std::endl;
         }
-        else if (roundNum > 60)
+        else
         {
             oppRaiseAsDealerLess = false;
         }
 
-        if ((float) oppReraiseAsBB / (float) ourRaiseAsDealer > 0.22 && ourRaiseAsDealer > 15)
+        if (((float) oppReraiseAsBB / (float) ourRaiseAsDealer > 0.13069 && ourRaiseAsDealer > 15) || roundNum < 80)
         {
             oppReRaiseAsBBMore = true;
             std::cout << "oppReRaiseAsBBMore is true" << std::endl;
@@ -1471,7 +1497,7 @@ struct Bot
                 }
                 else if (ourRaisesThisRound >= 2 && myPip == 0 && street == 5)
                 {
-                    changedPotOdds += 0.011;
+                    changedPotOdds += 0.11;
                 }
                 changedPotOdds = std::min(0.82 + ((street % 3) * 0.02), changedPotOdds);
             }
