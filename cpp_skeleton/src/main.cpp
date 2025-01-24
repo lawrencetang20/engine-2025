@@ -443,16 +443,12 @@ struct Bot
         std::cout << "\nRound #" << totalRounds << " : " << alreadyWonConst << std::endl;
         double bankrollThreshold = 1.5 * remainingRounds + bountyConstant * remainingRounds * alreadyWonConst + 53;
 
-        std::cout << "Bankroll thres: " << bankrollThreshold << std::endl;
-        std::cout << "Bankroll standardDev: " << standardDeviation << std::endl;
-        std::cout << "Bankroll oppbounty thres: " << NumOppBountyThreshold << std::endl;
-
         int roundedBankrollThreshold = (int)ceil(bankrollThreshold);
 
         if (myBankroll > roundedBankrollThreshold)
         {
             alreadyWon = true;
-            std::cout << "Already won" << std::endl;
+            std::cout << "Already won: YIPPEE!" << std::endl;
         }
     }
 
