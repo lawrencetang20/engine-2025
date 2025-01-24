@@ -317,7 +317,7 @@ struct Bot
     int ourRaiseAsDealer = 0;
 
     bool oppReRaiseAsBBMore = false;
-    bool oppRaiseAsDealerLess = false;
+    bool oppRaiseAsDealerLess = true;
 
     bool twoCheckBluff = false;
     int pmTwoCheckBluff = 0;
@@ -579,12 +579,12 @@ struct Bot
 
         std::cout << "oppRaiseAsDealer: " << oppRaiseAsDealer << " || oppReraiseAsBB: " << oppReraiseAsBB << " || ourRaiseAsDealer: " << ourRaiseAsDealer << std::endl;
 
-        if ((float) oppRaiseAsDealer / (float) numRounds * 2.0 < 0.20 && (float) numRounds > 70)
+        if ((((float) oppRaiseAsDealer / (float) roundNum) < 0.10) && roundNum > 60)
         {
             oppRaiseAsDealerLess = true;
             std::cout << "oppRaiseAsDealerLess is true" << std::endl;
         }
-        else
+        else if (roundNum > 60)
         {
             oppRaiseAsDealerLess = false;
         }
@@ -1471,7 +1471,7 @@ struct Bot
                 }
                 else if (ourRaisesThisRound >= 2 && myPip == 0 && street == 5)
                 {
-                    changedPotOdds += 0.11;
+                    changedPotOdds += 0.011;
                 }
                 changedPotOdds = std::min(0.82 + ((street % 3) * 0.02), changedPotOdds);
             }
