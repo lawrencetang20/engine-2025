@@ -434,26 +434,18 @@ struct Bot
 
         oppBetLastRound = false;
 
-        std::cout << "\nRound #" << totalRounds << " starting" << std::endl;
-
         int remainingRounds = numRounds - roundNum + 1;
 
-        
-        if (remainingRounds > 300)
-        {
-            alreadyWonConst = 0.25;
-        }
-        else if (!alreadyWon && remainingRounds > 150 && remainingRounds <= 300)
-        {
-            alreadyWonConst = 0.275;
-        }
-        else if (!alreadyWon && remainingRounds < 150)
-        {
-            alreadyWonConst = 0.35;
-        }
+        double standardDeviation = pow(remainingRounds*0.15*0.85, 0.5);
+        double NumOppBountyThreshold = remainingRounds*0.15 + 3.6969*standardDeviation;
+        alreadyWonConst = NumOppBountyThreshold / remainingRounds;
 
         std::cout << "\nRound #" << totalRounds << " : " << alreadyWonConst << std::endl;
         double bankrollThreshold = 1.5 * remainingRounds + bountyConstant * remainingRounds * alreadyWonConst + 53;
+
+        std::cout << "Bankroll thres: " << bankrollThreshold << std::endl;
+        std::cout << "Bankroll standardDev: " << standardDeviation << std::endl;
+        std::cout << "Bankroll oppbounty thres: " << NumOppBountyThreshold << std::endl;
 
         int roundedBankrollThreshold = (int)ceil(bankrollThreshold);
 
@@ -461,14 +453,6 @@ struct Bot
         {
             alreadyWon = true;
             std::cout << "Already won" << std::endl;
-        }
-        else
-        {
-            if (alreadyWon)
-            {
-                std::cout << "Error: Switching from already won to not - BAD" << std::endl;
-            }
-            alreadyWon = false;
         }
     }
 
