@@ -515,7 +515,7 @@ struct Bot
             std::cout << "Permanent no bounty bluff" << std::endl;
         }
         
-        std::cout << "Num opponent Bets: " << numOppBets << " || Num opponent Pot Bets: " << numOppPotBets << " || Num opponent Bets vs Checks: " << numOppBetNoCheck << " || Num opponent Checks: " << totalOppChecks << " || Num opponent Reraises this round: " << oppNumReraise << " || Num Opp Bets this round: " << oppNumBetsThisRound << std::endl;
+        std::cout << "Opp Bets: " << numOppBets << " || Opp Pot Bets: " << numOppPotBets << " || Opp Bets vs Checks: " << numOppBetNoCheck << " || Opp Checks: " << totalOppChecks << " || Opp Reraises this round: " << oppNumReraise << " || Opp Bets this round: " << oppNumBetsThisRound << std::endl;
 
         if (numOppBets > 8 && (roundNum % 50 == 0))
         {
@@ -579,7 +579,7 @@ struct Bot
 
         std::cout << "oppRaiseAsDealer: " << oppRaiseAsDealer << " || oppReraiseAsBB: " << oppReraiseAsBB << " || ourRaiseAsDealer: " << ourRaiseAsDealer << std::endl;
 
-        if ((float) oppRaiseAsDealer / (float) numRounds * 2.0 < 0.20 && (float) numRounds < 70)
+        if ((float) oppRaiseAsDealer / (float) numRounds * 2.0 < 0.20 && (float) numRounds > 70)
         {
             oppRaiseAsDealerLess = true;
             std::cout << "oppRaiseAsDealerLess is true" << std::endl;
@@ -1413,6 +1413,10 @@ struct Bot
                 {
                     changedPotOdds += 0.03;
                 }
+                else if (ourRaisesThisRound >= 2 && myPip == 0 && street == 5)
+                {
+                    changedPotOdds += 0.015;
+                }
                 changedPotOdds = std::min(0.86 + ((street % 3) * 0.01), changedPotOdds);
             }
             else if (realPotOdds > 1.1)
@@ -1422,6 +1426,10 @@ struct Bot
                 if (oppNumBetsThisRound > 2)
                 {
                     changedPotOdds += 0.04;
+                }
+                else if (ourRaisesThisRound >= 2 && myPip == 0 && street == 5)
+                {
+                    changedPotOdds += 0.02;
                 }
                 changedPotOdds = std::min(0.86 + ((street % 3) * 0.01), changedPotOdds);
             }
@@ -1433,6 +1441,10 @@ struct Bot
                 {
                     changedPotOdds += 0.11;
                 }
+                else if (ourRaisesThisRound >= 2 && myPip == 0 && street == 5)
+                {
+                    changedPotOdds += 0.06;
+                }
                 changedPotOdds = std::min(0.85 + ((street % 3) * 0.01), changedPotOdds);
             }
             else if (realPotOdds > 0.7)
@@ -1443,6 +1455,10 @@ struct Bot
                 {
                     changedPotOdds += 0.14;
                 }
+                else if (ourRaisesThisRound >= 2 && myPip == 0 && street == 5)
+                {
+                    changedPotOdds += 0.07;
+                }
                 changedPotOdds = std::min(0.83 + ((street % 3) * 0.02), changedPotOdds);
             }
             else
@@ -1452,6 +1468,10 @@ struct Bot
                 if (oppNumBetsThisRound > 2)
                 {
                     changedPotOdds += 0.19;
+                }
+                else if (ourRaisesThisRound >= 2 && myPip == 0 && street == 5)
+                {
+                    changedPotOdds += 0.011;
                 }
                 changedPotOdds = std::min(0.82 + ((street % 3) * 0.02), changedPotOdds);
             }
@@ -1464,11 +1484,24 @@ struct Bot
                 {
                     changedPotOdds += 0.3;
                 }
+                else if (ourRaisesThisRound >= 2 && myPip == 0 && street == 5)
+                {
+                    changedPotOdds += 0.175;
+                }
                 changedPotOdds = std::min(0.815 + ((street % 3) * 0.02), changedPotOdds);
             }
+
             else if (realPotOdds >= 1.1) 
             {
-                changedPotOdds -= 0.06 * (double)unnitBigBetFact;
+                if (oppNumReraise == 0 && oppNumBetsThisRound < 3)
+                {
+                    changedPotOdds -= 0.06 * (double)unnitBigBetFact;
+                }
+                else
+                {
+                    changedPotOdds -= 0.03 * (double)unnitBigBetFact;
+                }
+                
             }
 
             if (myPip == 0 && oppNumReraise == 0 && realPotOdds > 0.425 && realPotOdds < 1.4)
