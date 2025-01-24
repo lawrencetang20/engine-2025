@@ -1671,14 +1671,7 @@ struct Bot
 
         if (alreadyWon)
         {
-            if (legalActions.find(Action::Type::CHECK) != legalActions.end())
-            {
-                return {Action::Type::CHECK};
-            }
-            else
-            {
-                return {Action::Type::FOLD};
-            }
+            return {Action::Type::FOLD};
         }
         if (street == 0)
         {
