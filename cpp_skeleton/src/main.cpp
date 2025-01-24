@@ -1471,7 +1471,7 @@ struct Bot
                 }
                 else if (ourRaisesThisRound >= 2 && myPip == 0 && street == 5)
                 {
-                    changedPotOdds += 0.011;
+                    changedPotOdds += 0.11;
                 }
                 changedPotOdds = std::min(0.82 + ((street % 3) * 0.02), changedPotOdds);
             }
