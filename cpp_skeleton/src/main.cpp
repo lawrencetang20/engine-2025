@@ -1343,7 +1343,8 @@ struct Bot
             std::cout << "Raise Strength: " << raiseStrength << std::endl;
 
             double checkNutsStrength = 0.815 + 0.03 * (street % 3);
-            if (bigBlind && bluffCatcherFact == 1 && randPercent < 0.75 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
+            double randPercent4 = (rand() / double(RAND_MAX));
+            if (bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.4)) && randPercent < 0.75 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
             {
                 std::cout << "I check for deception against aggressive team with strong hand" << std::endl;
                 numSelfChecks++;
