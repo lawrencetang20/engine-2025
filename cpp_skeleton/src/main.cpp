@@ -354,7 +354,9 @@ struct Bot
 
     int lastStreet = -1;
 
-    std::unordered_map<std::string, int> preflopDict = {
+    bool aggressiveMode = false;
+
+    std::unordered_map<std::string, int> regularPreflopDict = {
         {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 10}, {"88o", 10}, {"AKs", 6}, {"77o", 11}, {"AQs", 9}, {"AJs", 11}, 
         {"AKo", 6}, {"ATs", 13}, {"AQo", 14}, {"AJo", 15}, {"KQs", 16}, {"KJs", 17}, {"A9s", 18}, {"ATo", 19}, {"66o", 20}, {"A8s", 21}, {"KTs", 22}, 
         {"KQo", 23}, {"A7s", 24}, {"A9o", 25}, {"KJo", 26}, {"55o", 27}, {"QJs", 28}, {"K9s", 29}, {"A5s", 30}, {"A6s", 31}, {"A8o", 32}, {"KTo", 33}, 
@@ -371,6 +373,25 @@ struct Bot
         {"43s", 140}, {"75o", 141}, {"82s", 142}, {"73s", 143}, {"93o", 144}, {"T2o", 145}, {"T3o", 146}, {"63s", 147}, {"84o", 148}, {"92o", 149}, 
         {"94o", 150}, {"74o", 151}, {"72s", 152}, {"54o", 153}, {"64o", 154}, {"52s", 155}, {"62s", 156}, {"83o", 157}, {"42s", 158}, {"82o", 159}, 
         {"73o", 160}, {"53o", 161}, {"63o", 162}, {"32s", 163}, {"43o", 164}, {"72o", 165}, {"52o", 166}, {"62o", 167}, {"42o", 168}, {"32o", 169}};
+
+    std::unordered_map<std::string, int> aggPreflopDict = {
+        {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 10}, {"88o", 10}, {"AKs", 6}, {"77o", 11}, {"AQs", 9}, {"AJs", 11}, 
+        {"AKo", 6}, {"ATs", 13}, {"AQo", 14}, {"AJo", 15}, {"KQs", 16}, {"KJs", 27}, {"A9s", 18}, {"ATo", 19}, {"66o", 20}, {"A8s", 21}, {"KTs", 27}, 
+        {"KQo", 23}, {"A7s", 24}, {"A9o", 25}, {"KJo", 27}, {"55o", 25}, {"QJs", 27}, {"K9s", 25}, {"A5s", 25}, {"A6s", 25}, {"A8o", 25}, {"KTo", 25}, 
+        {"QTs", 34}, {"A4s", 25}, {"A7o", 25}, {"K8s", 37}, {"A3s", 25}, {"QJo", 39}, {"K9o", 40}, {"A5o", 25}, {"A6o", 25}, {"Q9s", 43}, {"K7s", 44}, 
+        {"JTs", 45}, {"A2s", 25}, {"QTo", 47}, {"44o", 25}, {"A4o", 25}, {"K6s", 50}, {"K8o", 51}, {"Q8s", 52}, {"A3o", 25}, {"K5s", 54}, {"J9s", 55}, 
+        {"Q9o", 56}, {"JTo", 57}, {"K7o", 58}, {"A2o", 25}, {"K4s", 60}, {"Q7s", 61}, {"K6o", 62}, {"K3s", 63}, {"T9s", 64}, {"J8s", 65}, {"33o", 25}, 
+        {"Q6s", 67}, {"Q8o", 68}, {"K5o", 69}, {"J9o", 70}, {"K2s", 71}, {"Q5s", 72}, {"T8s", 73}, {"K4o", 74}, {"J7s", 75}, {"Q4s", 76}, {"Q7o", 77}, 
+        {"T9o", 78}, {"J8o", 79}, {"K3o", 80}, {"Q6o", 81}, {"Q3s", 82}, {"98s", 83}, {"T7s", 84}, {"J6s", 85}, {"K2o", 86}, {"25", 87}, {"Q2s", 87}, 
+        {"Q5o", 89}, {"J5s", 90}, {"T8o", 91}, {"J7o", 92}, {"Q4o", 93}, {"97s", 80}, {"J4s", 95}, {"T6s", 96}, {"J3s", 97}, {"Q3o", 98}, {"98o", 99}, 
+        {"87s", 85}, {"T7o", 101}, {"J6o", 102}, {"96s", 103}, {"J2s", 104}, {"Q2o", 105}, {"T5s", 106}, {"J5o", 107}, {"T4s", 108}, {"97o", 109}, 
+        {"86s", 110}, {"J4o", 111}, {"T6o", 112}, {"95s", 113}, {"T3s", 114}, {"76s", 90}, {"J3o", 116}, {"87o", 117}, {"T2s", 118}, {"85s", 119}, 
+        {"96o", 120}, {"J2o", 121}, {"T5o", 122}, {"94s", 123}, {"75s", 124}, {"T4o", 125}, {"93s", 126}, {"86o", 127}, {"65s", 128}, {"84s", 129}, 
+        {"95o", 130}, {"53s", 131}, {"92s", 132}, {"76o", 133}, {"74s", 134}, {"65o", 135}, {"54s", 130}, {"85o", 137}, {"64s", 138}, {"83s", 139}, 
+        {"43s", 140}, {"75o", 141}, {"82s", 142}, {"73s", 143}, {"93o", 144}, {"T2o", 145}, {"T3o", 146}, {"63s", 147}, {"84o", 148}, {"92o", 149}, 
+        {"94o", 150}, {"74o", 151}, {"72s", 152}, {"54o", 153}, {"64o", 154}, {"52s", 155}, {"62s", 156}, {"83o", 157}, {"42s", 158}, {"82o", 159}, 
+        {"73o", 160}, {"53o", 161}, {"63o", 162}, {"32s", 163}, {"43o", 164}, {"72o", 165}, {"52o", 166}, {"62o", 167}, {"42o", 168}, {"32o", 169}};
+
 
     /*
       Called when a new round starts. Called NUM_ROUNDS times.
@@ -422,6 +443,17 @@ struct Bot
             oppReRaiseAsBBMore = true;
             oppRaiseAsDealerLess = true;
             std::cout << "No more bounty bluff raises" << std::endl;
+        }
+
+        if (myBankroll < -1500)
+        {
+            aggressiveMode = true;
+            std::cout << "Agg mode true" << std::endl;
+        }
+        else
+        {
+            aggressiveMode = false;
+            std::cout << "Agg mode false" << std::endl;
         }
 
         numOppChecks = 0;
@@ -679,6 +711,10 @@ struct Bot
 
     int noIllegalRaises(int myBet, RoundStatePtr roundState, bool active)
     {
+        if (aggressiveMode)
+        {
+            myBet *= 2;
+        }
         int myPip = roundState->pips[active];      // the number of chips you have contributed to the pot this round of betting
         int oppPip = roundState->pips[1 - active]; // the number of chips your opponent has contributed to the pot this round of betting
 
@@ -715,6 +751,15 @@ struct Bot
         std::vector<std::string> myCards(roundState->hands[active].begin(), roundState->hands[active].end());
         std::string newCards = categorize_cards(myCards);
 
+        if (!aggressiveMode)
+        {
+            auto preflopDict = regularPreflopDict;
+        }
+        else
+        {
+            auto preflopDict = aggPreflopDict;
+        }
+
         int handStrength = preflopDict.find(newCards)->second;
         int oldHandStrength = handStrength;
 
@@ -732,7 +777,15 @@ struct Bot
         {
             if (hasBounty)
             {
-                if (bluffCatcherFact == 0 || oldHandStrength < 88)
+                if (aggressiveMode)
+                {
+                    std::cout << "Agg bad bounty 7x raise from sb" << std::endl;
+                    timesBetPreflop++;
+                    ourRaiseAsDealer++;
+                    myBet = 7 * pot;
+                    return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                }
+                else if (bluffCatcherFact == 0 || oldHandStrength < 88)
                 {
                     std::cout << "3x raise from sb with bounty" << std::endl;
                     timesBetPreflop++;
@@ -742,13 +795,39 @@ struct Bot
                 }
                 else
                 {
-                    //std::cout << "Fold from sb" << std::endl;
-                    return {Action::Type::FOLD};
+                    std::cout << "Call from sb with bad bounty" << std::endl;
+                    return {Action::Type::CALL};
+
+                    // MAYBE CALL ALWAYS HERE TODO!!!!
                 }
             }
             else
             {
-                if (handStrength < 26)
+                if (aggressiveMode)
+                {
+                    if (handStrength < 26)
+                    {
+                        std::cout << "Agg 7x raise from sb" << std::endl;
+                        timesBetPreflop++;
+                        ourRaiseAsDealer++;
+                        myBet = 7 * pot;
+                        return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                    }
+                    else if (handStrength < 88)
+                    {
+                        std::cout << "Agg 4x raise from sb" << std::endl;
+                        timesBetPreflop++;
+                        ourRaiseAsDealer++;
+                        myBet = 4 * pot;
+                        return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                    }
+                    else
+                    {
+                        std::cout << "Call from sb with bad bounty" << std::endl;
+                        return {Action::Type::CALL};
+                    }
+                }
+                else if (handStrength < 26)
                 {
                     std::cout << "3x raise from sb" << std::endl;
                     timesBetPreflop++;
@@ -789,6 +868,75 @@ struct Bot
         }
         else if (bigBlind && timesBetPreflop == 0) //big blind, haven't acted yet
         {
+            if (aggressiveMode)
+            {
+                if (hasBounty)
+                {
+                    if (oppPip == 2)
+                    {
+                        timesBetPreflop++;
+                        myBet = 7 * pot;
+                        std::cout << "Agg 7x raise from bb from call with bounty" << std::endl;
+                        return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                    }
+                    else if (oldHandStrength < 26)
+                    {
+                        timesBetPreflop++;
+                        std::cout << "Agg all in from bb with bounty" << std::endl;
+                        return {Action::Type::RAISE, noIllegalRaises(400, roundState, active)};
+                    }
+                    else if (oldHandStrength < 56)
+                    {   
+                        timesBetPreflop++;
+                        myBet = 7 * pot;
+                        std::cout << "Agg 7x raise from bb with bounty" << std::endl;
+                        return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                    }
+                    else if (oppPip < 50)
+                    {   
+                        std::cout << "Agg call from bb with bounty" << std::endl;
+                        return {Action::Type::CALL};
+                    }
+                    else
+                    {
+                        return {Action::Type::FOLD};
+                    }
+                }
+                else
+                {
+                    if (oppPip == 2 && handStrength < 60)
+                    {
+                        timesBetPreflop++;
+                        myBet = 7 * pot;
+                        std::cout << "Agg 7x raise from bb from call" << std::endl;
+                        return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                    }
+                    else if (handStrength < 15)
+                    {
+                        timesBetPreflop++;
+                        std::cout << "Agg all in from bb" << std::endl;
+                        return {Action::Type::RAISE, noIllegalRaises(400, roundState, active)};
+                    }
+                    else if (handStrength < 28)
+                    {   
+                        timesBetPreflop++;
+                        myBet = 7 * pot;
+                        std::cout << "Agg 7x raise from bb" << std::endl;
+                        return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                    }
+                    else if (oppPip < 50 && handStrength < 88)
+                    {   
+                        std::cout << "Agg call from bb" << std::endl;
+                        return {Action::Type::CALL};
+                    }
+                    else
+                    {
+                        return {Action::Type::FOLD};
+                    }
+                }
+
+            }
+
             if (oppPip == 2) //Opponent calls as dealer
             {
                 if (handStrength <= 69 && (legalActions.find(Action::Type::RAISE) != legalActions.end())) //raise with strong hands or bounty
@@ -953,6 +1101,45 @@ struct Bot
                     return {Action::Type::FOLD};
                 }
             }
+        }
+        else if (aggressiveMode)
+        {
+            if (hasBounty)
+            {
+                if (oldHandStrength < 26)
+                {
+                    timesBetPreflop++;
+                    std::cout << "Agg all in with bounty" << std::endl;
+                    return {Action::Type::RAISE, noIllegalRaises(400, roundState, active)};
+                }
+                else if (continueCost < 50)
+                {
+                    std::cout << "Agg call with bounty" << std::endl;
+                    return {Action::Type::CALL};
+                }
+                else
+                {
+                    return {Action::Type::FOLD};
+                }
+            }
+            else
+            {
+                if (handStrength < 15)
+                {
+                    timesBetPreflop++;
+                    std::cout << "Agg all in" << std::endl;
+                    return {Action::Type::RAISE, noIllegalRaises(400, roundState, active)};
+                }
+                else if (continueCost < 50 && handStrength < 30)
+                {
+                    std::cout << "Agg call" << std::endl;
+                    return {Action::Type::CALL};
+                }
+                else
+                {
+                    return {Action::Type::FOLD};
+                }
+            }    
         }
         else if (!bigBlind && timesBetPreflop == 1) //We are dealer, raise, get reraised from bb
         {
@@ -1352,7 +1539,7 @@ struct Bot
             double randPercent4 = (rand() / double(RAND_MAX));
             if (bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.4)) && randPercent < 0.75 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
             {
-                std::cout << "I check for deception against aggressive team with strong hand" << std::endl;
+                std::cout << "I check deception against agg team with strong hand" << std::endl;
                 numSelfChecks++;
                 return {{Action::Type::CHECK}, -1};
             }
@@ -1557,7 +1744,7 @@ struct Bot
                         double randPercent2 = (rand() / double(RAND_MAX));
                         if (pot < 100 && (randPercent2 < 0.5 || (randPercent2 < 0.85 && bluffCatcherFact == 1)))
                         {
-                            std::cout << "I call with nuts for deception" << std::endl;
+                            std::cout << "I call with nuts deception" << std::endl;
                             return {{Action::Type::CALL}, -1};
                         }
                         else
@@ -1785,7 +1972,6 @@ struct Bot
             handStrength = (static_cast<double>(winCount) / static_cast<double>(divisor));
             std::cout << "MC Simulation: " << handStrength << " for street " << street << std::endl;
 
-            // add some sort of draw recognition from board + your hand TODO
             postflopAction = getPostflopAction(handStrength, roundState, active);
         }
 
