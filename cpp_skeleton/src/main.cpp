@@ -477,8 +477,8 @@ struct Bot
         
         int roundedAggBankrollThreshold = (int)ceil(aggBankrollThreshold * 0.7); // mult by 0.6 because otherwise it is too high
         
-        std::cout << "agg threshold" << roundedAggBankrollThreshold << std::endl;
-        std::cout << "alreadyWon threshold" << roundedAlreadyWonBankrollThreshold << std::endl;
+        std::cout << "agg threshold: " << roundedAggBankrollThreshold << std::endl;
+        std::cout << "alreadyWon threshold: " << roundedAlreadyWonBankrollThreshold << std::endl;
 
         std::cout << "\nRound #" << totalRounds << " : " << alreadyWonConst << " " << aggConst << std::endl;
         if (myBankroll > roundedAlreadyWonBankrollThreshold)
@@ -728,11 +728,6 @@ struct Bot
 
     int noIllegalRaises(int myBet, RoundStatePtr roundState, bool active)
     {
-        if (aggressiveMode && roundState->street != 0)
-        {
-            myBet *= 2;
-            std::cout << "bet x2 agg" << std::endl;
-        }
         int myPip = roundState->pips[active];      // the number of chips you have contributed to the pot this round of betting
         int oppPip = roundState->pips[1 - active]; // the number of chips your opponent has contributed to the pot this round of betting
 
@@ -837,7 +832,7 @@ struct Bot
                         std::cout << "Agg 4x raise from sb" << std::endl;
                         timesBetPreflop++;
                         ourRaiseAsDealer++;
-                        myBet = 4 * pot;
+                        myBet = 3 * pot;
                         return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
                     }
                     else
@@ -907,7 +902,7 @@ struct Bot
                     else if (oldHandStrength < 56)
                     {   
                         timesBetPreflop++;
-                        myBet = 7 * pot;
+                        myBet = 4 * pot;
                         std::cout << "Agg 7x raise from bb with bounty" << std::endl;
                         return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
                     }
@@ -926,7 +921,7 @@ struct Bot
                     if (oppPip == 2 && handStrength < 60)
                     {
                         timesBetPreflop++;
-                        myBet = 7 * pot;
+                        myBet = 4 * pot;
                         std::cout << "Agg 7x raise from bb from call" << std::endl;
                         return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
                     }
@@ -1149,7 +1144,7 @@ struct Bot
                     std::cout << "Agg all in" << std::endl;
                     return {Action::Type::RAISE, noIllegalRaises(400, roundState, active)};
                 }
-                else if (continueCost < 50 && handStrength < 30)
+                else if (continueCost < 50 && handStrength < 40)
                 {
                     std::cout << "Agg call" << std::endl;
                     return {Action::Type::CALL};
@@ -1501,12 +1496,7 @@ struct Bot
             oppBetLastRound = false;
             std::cout << "Able to check or out of position" << std::endl;
 
-            if (aggressiveMode)
-            {
-                // ADD HERE
-            }
-
-            if (hasBounty && handStrength < 0.7 && !permanentNoBountyBluff)
+            if (hasBounty && handStrength < 0.7 && (!permanentNoBountyBluff || (aggressiveMode && randPercent < 0.5)))
             {
                 bountyRaises++;
 
@@ -1535,7 +1525,7 @@ struct Bot
                     bountyBluff = true;
                     return {{Action::Type::RAISE}, 1};
                 }
-                else if (randPercent < 0.60 && nitToggle)
+                else if ((randPercent < 0.60 && nitToggle) || aggressiveMode)
                 {
                     std::cout << "I randomly bounty bluff raise #" << bountyRaises << std::endl;
                     numOppChecks = 0;
@@ -1733,6 +1723,11 @@ struct Bot
             if (hasBounty && realPotOdds < 1.1 && oppNumReraise < 1 && oppNumBetsThisRound < 3)
             {
                 changedPotOdds -= 0.05; //slight unnit with bounty to smaller bets (not reraises or continued betting from opponent)
+            }
+
+            if (aggressiveMode)
+            {
+                changedPotOdds -= 0.075;
             }
 
             std::cout << "Changed pot odds: " << changedPotOdds << std::endl;
