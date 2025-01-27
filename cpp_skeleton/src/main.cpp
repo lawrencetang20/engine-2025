@@ -442,7 +442,7 @@ struct Bot
             bountyRaises++;
             oppReRaiseAsBBMore = true;
             oppRaiseAsDealerLess = true;
-            std::cout << "No more bounty bluff raises" << std::endl;
+            //std::cout << "No more bounty bluff raises" << std::endl;
         }
 
 
@@ -477,17 +477,17 @@ struct Bot
         
         int roundedAggBankrollThreshold = (int)ceil(aggBankrollThreshold * 0.7); // mult by 0.6 because otherwise it is too high
         
-        std::cout << "agg threshold: " << roundedAggBankrollThreshold << std::endl;
-        std::cout << "alreadyWon threshold: " << roundedAlreadyWonBankrollThreshold << std::endl;
+        //std::cout << "agg threshold: " << roundedAggBankrollThreshold << std::endl;
+        //std::cout << "alreadyWon threshold: " << roundedAlreadyWonBankrollThreshold << std::endl;
 
-        std::cout << "\nRound #" << totalRounds << " : " << alreadyWonConst << " " << aggConst << std::endl;
+        std::cout << "\n#" << totalRounds << std::endl;
         if (myBankroll > roundedAlreadyWonBankrollThreshold)
         {
             alreadyWon = true;
             std::cout << "Already won: YIPPEE!" << std::endl;
         }
         
-        if (myBankroll < -1 * roundedAggBankrollThreshold)
+        if (myBankroll < -1 * roundedAggBankrollThreshold && roundNum > 299)
         {
             aggressiveMode = true;
             std::cout << "agg mode true" << std::endl;
@@ -495,7 +495,7 @@ struct Bot
         else
         {
             aggressiveMode = false;
-            std::cout << "agg mode false" << std::endl;
+            //std::cout << "agg mode false" << std::endl;
         }
 
         
@@ -537,19 +537,19 @@ struct Bot
 
         if (twoCheckBluff)
         {
-            std::cout << "Two check bluff happened this round" << std::endl;
+            //std::cout << "Two check bluff happened this round" << std::endl;
             pmTwoCheckBluff += myDelta;
             twoCheckBluffCounter++;
         }
         if (threeCheckBluff)
         {
-            std::cout << "Three check bluff happened this round" << std::endl;
+            //std::cout << "Three check bluff happened this round" << std::endl;
             pmThreeCheckBluff += myDelta;
             threeCheckBluffCounter++;
         }
         if (bountyBluff)
         {
-            std::cout << "Bounty bluff happened this round" << std::endl;
+            //std::cout << "Bounty bluff happened this round" << std::endl;
             pmBountyBluff += myDelta;
             bountyBluffCounter++;
         }
@@ -557,20 +557,20 @@ struct Bot
         if (pmTwoCheckBluff < -300 && twoCheckBluffCounter > 7)
         {
             permanentNoTwoCheck = true;
-            std::cout << "Permanent no two check" << std::endl;
+            std::cout << "Perm no 2c" << std::endl;
         }
         if (pmThreeCheckBluff < -300 && threeCheckBluffCounter > 7)
         {
             permanentNoTwoCheck = true;
-            std::cout << "Permanent no three check" << std::endl;
+            std::cout << "Perm no 3c" << std::endl;
         }
         if (pmBountyBluff < -300 && bountyBluffCounter > 7)
         {
             permanentNoBountyBluff = true;
-            std::cout << "Permanent no bounty bluff" << std::endl;
+            std::cout << "Perm no bb" << std::endl;
         }
         
-        std::cout << "Opp Bets: " << numOppBets << " || Opp Pot Bets: " << numOppPotBets << " || Opp Bets vs Checks: " << numOppBetNoCheck << " || Opp Checks: " << totalOppChecks << " || Opp Reraises this round: " << oppNumReraise << " || Opp Bets this round: " << oppNumBetsThisRound << std::endl;
+        std::cout << "Opp Bets: " << numOppBets << " | Opp Pot Bets: " << numOppPotBets << " | Opp Bets vs Checks: " << numOppBetNoCheck << " | Opp Checks: " << totalOppChecks << " | Opp Reraises this round: " << oppNumReraise << " | Opp Bets this round: " << oppNumBetsThisRound << std::endl;
 
         if (numOppBets > 8 && (roundNum % 50 == 0))
         {
@@ -613,10 +613,11 @@ struct Bot
         if (ourTotalRaises >= 15 && oppTotalReraises >= 2)
         {
             double oppReraisePct = (double)oppTotalReraises / ourTotalRaises;
-            std::cout << "Opp reraise pct: " << oppReraisePct << std::endl;
+            
             if (oppReraisePct > 0.125)
             {
                 oppReraiseFact = 1;
+                std::cout << "Opp reraise pct: " << oppReraisePct << std::endl;
             }
             else
             {
@@ -637,7 +638,7 @@ struct Bot
         if ((((float) oppRaiseAsDealer / (float) roundNum) < 0.15) || roundNum < 80)
         {
             oppRaiseAsDealerLess = true;
-            std::cout << "oppRaiseAsDealerLess is true" << std::endl;
+            std::cout << "ORADL = t" << std::endl;
         }
         else
         {
@@ -647,7 +648,7 @@ struct Bot
         if (((float) oppReraiseAsBB / (float) ourRaiseAsDealer > 0.13069 && ourRaiseAsDealer > 15) || roundNum < 80)
         {
             oppReRaiseAsBBMore = true;
-            std::cout << "oppReRaiseAsBBMore is true" << std::endl;
+            std::cout << "ORRBBM = t" << std::endl;
         }
         else
         {
@@ -779,10 +780,9 @@ struct Bot
 
         if (newCards.find(myBounty) != std::string::npos)
         {
-            std::cout << "Bounty is ACTIVE from my hand with bounty " << myBounty << std::endl;
+            std::cout << "Bounty ACTIVE with " << myBounty << std::endl;
             hasBounty = true;
             handStrength = 1;
-            std::cout << "changed handStrength to 1" << std::endl;
         }
 
         std::cout << "Hand strength: " << handStrength << std::endl;
@@ -809,6 +809,7 @@ struct Bot
                 }
                 else
                 {
+                    timesBetPreflop++;
                     std::cout << "Call from sb with bad bounty" << std::endl;
                     return {Action::Type::CALL};
 
@@ -837,6 +838,7 @@ struct Bot
                     }
                     else
                     {
+                        timesBetPreflop++;
                         std::cout << "Call from sb with bad bounty" << std::endl;
                         return {Action::Type::CALL};
                     }
@@ -909,6 +911,7 @@ struct Bot
                     else if (oppPip < 50)
                     {   
                         std::cout << "Agg call from bb with bounty" << std::endl;
+                        timesBetPreflop++;
                         return {Action::Type::CALL};
                     }
                     else
@@ -927,21 +930,45 @@ struct Bot
                     }
                     else if (handStrength < 15)
                     {
-                        timesBetPreflop++;
-                        std::cout << "Agg all in from bb" << std::endl;
-                        return {Action::Type::RAISE, noIllegalRaises(400, roundState, active)};
+                        if (legalActions.find(Action::Type::RAISE) != legalActions.end())
+                        {
+                            timesBetPreflop++;
+                            std::cout << "Agg all in from bb" << std::endl;
+                            return {Action::Type::RAISE, noIllegalRaises(400, roundState, active)};
+                        }
+                        else
+                        {
+                            timesBetPreflop++;
+                            std::cout << "Agg call from bb" << std::endl;
+                            return {Action::Type::CALL};
+                        }
                     }
                     else if (handStrength < 28)
                     {   
-                        timesBetPreflop++;
-                        myBet = 7 * pot;
-                        std::cout << "Agg 7x raise from bb" << std::endl;
-                        return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                        if (legalActions.find(Action::Type::RAISE) != legalActions.end())
+                        {
+                            timesBetPreflop++;
+                            myBet = 7 * pot;
+                            std::cout << "Agg 7x raise from bb" << std::endl;
+                            return {Action::Type::RAISE, noIllegalRaises(myBet, roundState, active)};
+                        }
+                        else
+                        {
+                            timesBetPreflop++;
+                            std::cout << "Agg call from bb" << std::endl;
+                            return {Action::Type::CALL};
+                        }
                     }
                     else if (oppPip < 50 && handStrength < 88)
                     {   
+                        timesBetPreflop++;
                         std::cout << "Agg call from bb" << std::endl;
                         return {Action::Type::CALL};
+                    }
+                    else if (legalActions.find(Action::Type::CHECK) != legalActions.end())
+                    {
+                        std::cout << "Opp calls as dealer, check after failed 3x raise as bb" << std::endl;
+                        return {Action::Type::CHECK};
                     }
                     else
                     {
@@ -1122,9 +1149,18 @@ struct Bot
             {
                 if (oldHandStrength < 26)
                 {
-                    timesBetPreflop++;
-                    std::cout << "Agg all in with bounty" << std::endl;
-                    return {Action::Type::RAISE, noIllegalRaises(400, roundState, active)};
+                    if (legalActions.find(Action::Type::RAISE) != legalActions.end())
+                    {
+                        timesBetPreflop++;
+                        std::cout << "Agg all in with bounty" << std::endl;
+                        return {Action::Type::RAISE, noIllegalRaises(400, roundState, active)};
+                    }
+                    else
+                    {
+                        timesBetPreflop++;
+                        std::cout << "Agg call from bb" << std::endl;
+                        return {Action::Type::CALL};
+                    }    
                 }
                 else if (continueCost < 50)
                 {
@@ -1140,9 +1176,18 @@ struct Bot
             {
                 if (handStrength < 15)
                 {
-                    timesBetPreflop++;
-                    std::cout << "Agg all in" << std::endl;
-                    return {Action::Type::RAISE, noIllegalRaises(400, roundState, active)};
+                    if (legalActions.find(Action::Type::RAISE) != legalActions.end())
+                    {
+                        timesBetPreflop++;
+                        std::cout << "Agg all in without bounty" << std::endl;
+                        return {Action::Type::RAISE, noIllegalRaises(400, roundState, active)};
+                    }
+                    else
+                    {
+                        timesBetPreflop++;
+                        std::cout << "Agg call from bb" << std::endl;
+                        return {Action::Type::CALL};
+                    }  
                 }
                 else if (continueCost < 50 && handStrength < 40)
                 {
