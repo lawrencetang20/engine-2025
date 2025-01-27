@@ -445,16 +445,6 @@ struct Bot
             std::cout << "No more bounty bluff raises" << std::endl;
         }
 
-        if (myBankroll < -1500)
-        {
-            aggressiveMode = true;
-            std::cout << "Agg mode true" << std::endl;
-        }
-        else
-        {
-            aggressiveMode = false;
-            std::cout << "Agg mode false" << std::endl;
-        }
 
         numOppChecks = 0;
         numSelfChecks = 0;
@@ -469,19 +459,46 @@ struct Bot
         int remainingRounds = numRounds - roundNum + 1;
 
         double standardDeviation = pow(remainingRounds*0.15*0.85, 0.5);
-        double NumOppBountyThreshold = remainingRounds*0.15 + 3.6969*standardDeviation;
-        alreadyWonConst = NumOppBountyThreshold / remainingRounds;
+        
+        double alreadyWonNumOppBountyThreshold = remainingRounds*0.15 + 3.6969*standardDeviation;
+        
+        alreadyWonConst = alreadyWonNumOppBountyThreshold / remainingRounds;
+        
+        double alreadyWonBankrollThreshold = 1.5 * remainingRounds + bountyConstant * remainingRounds * alreadyWonConst + 53;
+        
+        int roundedAlreadyWonBankrollThreshold = (int)ceil(alreadyWonBankrollThreshold);
 
-        std::cout << "\nRound #" << totalRounds << " : " << alreadyWonConst << std::endl;
-        double bankrollThreshold = 1.5 * remainingRounds + bountyConstant * remainingRounds * alreadyWonConst + 53;
 
-        int roundedBankrollThreshold = (int)ceil(bankrollThreshold);
+        double aggNumOppBountyThreshold = remainingRounds*0.15 + 1*standardDeviation;
+        
+        double aggConst = aggNumOppBountyThreshold / remainingRounds;
+        
+        double aggBankrollThreshold = 1.5 * remainingRounds + bountyConstant * remainingRounds * aggConst + 53;
+        
+        int roundedAggBankrollThreshold = (int)ceil(aggBankrollThreshold * 0.7); // mult by 0.6 because otherwise it is too high
+        
+        std::cout << "agg threshold" << roundedAggBankrollThreshold << std::endl;
+        std::cout << "alreadyWon threshold" << roundedAlreadyWonBankrollThreshold << std::endl;
 
-        if (myBankroll > roundedBankrollThreshold)
+        std::cout << "\nRound #" << totalRounds << " : " << alreadyWonConst << " " << aggConst << std::endl;
+        if (myBankroll > roundedAlreadyWonBankrollThreshold)
         {
             alreadyWon = true;
             std::cout << "Already won: YIPPEE!" << std::endl;
         }
+        
+        if (myBankroll < -1 * roundedAggBankrollThreshold)
+        {
+            aggressiveMode = true;
+            std::cout << "agg mode true" << std::endl;
+        }
+        else
+        {
+            aggressiveMode = false;
+            std::cout << "agg mode false" << std::endl;
+        }
+
+        
     }
 
     /*
@@ -711,9 +728,10 @@ struct Bot
 
     int noIllegalRaises(int myBet, RoundStatePtr roundState, bool active)
     {
-        if (aggressiveMode)
+        if (aggressiveMode && roundState->street != 0)
         {
             myBet *= 2;
+            std::cout << "bet x2 agg" << std::endl;
         }
         int myPip = roundState->pips[active];      // the number of chips you have contributed to the pot this round of betting
         int oppPip = roundState->pips[1 - active]; // the number of chips your opponent has contributed to the pot this round of betting
@@ -751,16 +769,17 @@ struct Bot
         std::vector<std::string> myCards(roundState->hands[active].begin(), roundState->hands[active].end());
         std::string newCards = categorize_cards(myCards);
 
+        int handStrength = -1;
+
         if (!aggressiveMode)
         {
-            auto preflopDict = regularPreflopDict;
+            handStrength = regularPreflopDict.find(newCards)->second;
         }
         else
         {
-            auto preflopDict = aggPreflopDict;
+            handStrength = aggPreflopDict.find(newCards)->second;
         }
 
-        int handStrength = preflopDict.find(newCards)->second;
         int oldHandStrength = handStrength;
 
         if (newCards.find(myBounty) != std::string::npos)
@@ -1481,6 +1500,11 @@ struct Bot
         {
             oppBetLastRound = false;
             std::cout << "Able to check or out of position" << std::endl;
+
+            if (aggressiveMode)
+            {
+                // ADD HERE
+            }
 
             if (hasBounty && handStrength < 0.7 && !permanentNoBountyBluff)
             {
