@@ -634,7 +634,7 @@ struct Bot
 
         std::cout << "oppRaiseAsDealer: " << oppRaiseAsDealer << " || oppReraiseAsBB: " << oppReraiseAsBB << " || ourRaiseAsDealer: " << ourRaiseAsDealer << std::endl;
 
-        if ((((float) oppRaiseAsDealer / (float) roundNum) < 0.2) || roundNum < 80)
+        if ((((float) oppRaiseAsDealer / (float) roundNum) < 0.15) || roundNum < 80)
         {
             oppRaiseAsDealerLess = true;
             std::cout << "oppRaiseAsDealerLess is true" << std::endl;
