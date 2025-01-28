@@ -306,7 +306,7 @@ struct Bot
     double reRaiseFactor = 0.0075;
 
     bool hasBounty = false;
-    int bountyRaises = 0;
+    int bountyRaises = 1;
     bool alarmBell = false;
 
     bool nitToggle = true; // think reversely
@@ -438,7 +438,7 @@ struct Bot
         }
 
         hasBounty = false;
-        bountyRaises = 0;
+        bountyRaises = 1;
         alarmBell = false;
         if (myBankroll > 1000)
         {
