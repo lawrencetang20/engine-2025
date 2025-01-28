@@ -356,6 +356,9 @@ struct Bot
 
     bool aggressiveMode = false;
 
+    int consecutivePassive = 0;
+    bool oppCheckFold = false;
+
     std::unordered_map<std::string, int> regularPreflopDict = {
         {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 10}, {"88o", 10}, {"AKs", 6}, {"77o", 11}, {"AQs", 9}, {"AJs", 11}, 
         {"AKo", 6}, {"ATs", 13}, {"AQo", 14}, {"AJo", 15}, {"KQs", 16}, {"KJs", 17}, {"A9s", 18}, {"ATo", 19}, {"66o", 20}, {"A8s", 21}, {"KTs", 22}, 
@@ -521,6 +524,36 @@ struct Bot
         int roundNum = gameState->roundNum;
 
         char bounty_rank = previousState->bounties[active]; // your bounty rank
+
+
+        int oppStack = previousState->stacks[1 - active];   // the number of chips your opponent has remaining
+        int oppContribution = STARTING_STACK - oppStack; // the number of chips your opponent has contributed to the pot
+        bool bigBlind = (active == 1);            // true if you are the big blind
+
+        // if we are BB, they should lose 1, else lose 2
+
+        if (bigBlind && oppContribution == 1)
+        {
+            consecutivePassive++;
+        }
+        else if (!bigBlind && oppContribution == 2)
+        {
+            consecutivePassive++;
+        }
+        else
+        {
+            consecutivePassive = 0;
+        }
+
+        if (consecutivePassive > 30)
+        {
+            std::cout << "opp is cf bot" << std::endl;
+            oppCheckFold = true;
+        }
+        else
+        {
+            oppCheckFold = false;
+        }
 
         // // The following is a demonstration of accessing illegal information (will not work)
         // char opponent_bounty_rank = previousState->bounties[1 - active]; // attempting to grab opponent's bounty rank
@@ -785,10 +818,28 @@ struct Bot
             handStrength = 1;
         }
 
+
+
         std::cout << "Hand strength: " << handStrength << std::endl;
 
         if (!bigBlind && timesBetPreflop == 0) //dealer, first to act
         {
+            if (oppCheckFold)
+            {
+                if (hasBounty)
+                {
+                    timesBetPreflop++;
+                    std::cout << "min raise for cf" << std::endl;
+                    return {Action::Type::RAISE, noIllegalRaises(3, roundState, active)};
+                }
+                else
+                {
+                    timesBetPreflop++;
+                    std::cout << "call for cf" << std::endl;
+                    return {Action::Type::CALL};
+                }
+            }
+
             if (hasBounty)
             {
                 if (aggressiveMode)
@@ -1538,6 +1589,26 @@ struct Bot
 
         if (legalActions.find(Action::Type::CHECK) != legalActions.end()) //Check or Raise
         {
+            if (oppCheckFold && ourRaisesThisRound == 0 && oppNumBetsThisRound == 0)
+            {
+                std::cout << "opp is cf bot" << std::endl;
+                if (hasBounty)
+                {
+                    std::cout << "min raise for cf" << std::endl;
+                    return {{Action::Type::RAISE}, 6};
+                }
+                else if (street == 5)
+                {
+                    std::cout << "min raise for cf w no bounty" << std::endl;
+                    return {{Action::Type::RAISE}, 6};
+                }
+                else
+                {
+                    return {{Action::Type::CHECK}, -1};
+                }
+            }
+
+
             oppBetLastRound = false;
             std::cout << "Able to check or out of position" << std::endl;
 
