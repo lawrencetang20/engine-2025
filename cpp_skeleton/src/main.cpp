@@ -303,7 +303,7 @@ struct Bot
     int oppLastContribution = 0;
 
     double raiseFactor = 0.05;
-    double reRaiseFactor = 0.01;
+    double reRaiseFactor = 0.025;
 
     bool hasBounty = false;
     int bountyRaises = 0;
@@ -349,6 +349,7 @@ struct Bot
     int ourRaisesThisRound = 0;
     int ourTotalRaises = 0;
     int oppTotalReraises = 0;
+    int ourReRaisesThisRound = 0;
 
     double alreadyWonConst = 0.25;
 
@@ -358,6 +359,8 @@ struct Bot
 
     int consecutivePassive = 0;
     bool oppCheckFold = false;
+
+
 
     std::unordered_map<std::string, int> regularPreflopDict = {
         {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 10}, {"88o", 10}, {"AKs", 6}, {"77o", 11}, {"AQs", 9}, {"AJs", 11}, 
@@ -415,6 +418,7 @@ struct Bot
         oppNumReraise = 0;
         oppNumBetsThisRound = 0;
         ourRaisesThisRound = 0;
+        ourReRaisesThisRound = 0;
 
         nitToggle = (myBankroll > 1750) ? false : true;
         if (!nitToggle)
@@ -1666,8 +1670,16 @@ struct Bot
             std::cout << "Raise Strength: " << raiseStrength << std::endl;
 
             double checkNutsStrength = 0.81 + (street % 3) * (double)reRaiseFactor;
+            double checkMegaNutsStrength = 0.87 + (street%3) * (double)reRaiseFactor;
             double randPercent4 = (rand() / double(RAND_MAX));
             if (bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.7)) && randPercent < 0.8 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
+            {
+                std::cout << "I check deception against agg team with strong hand" << std::endl;
+                numSelfChecks++;
+                return {{Action::Type::CHECK}, -1};
+            }
+
+            else if (!bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.6069)) && randPercent < 0.9 && handStrength > checkMegaNutsStrength && street == 3)
             {
                 std::cout << "I check deception against agg team with strong hand" << std::endl;
                 numSelfChecks++;
@@ -1860,7 +1872,8 @@ struct Bot
             else
             {
                 double reraiseStrength = (0.81 + ((street % 3) * (double)reRaiseFactor));
-                reraiseStrength += oppNumReraise * 0.04; // increase reraise strength if opponent reraises
+                reraiseStrength += oppNumReraise * 0.05; // increase reraise strength if opponent reraises
+                reraiseStrength += ourReRaisesThisRound * 0.02;
                 
                 if (realPotOdds > 1.1) //more nitty reraising against huge opponent bets
                 {
@@ -1871,10 +1884,11 @@ struct Bot
                     reraiseStrength = 0.94;
                 }
                 double randPercent3 = (rand() / double(RAND_MAX));
+                double theNutsStrength = 0.85 + .02 * (street % 3);
 
                 if (handStrength >= reraiseStrength || (handStrength - changedPotOdds > 0.5 && handStrength >= reraiseStrength - 0.05))
                 {
-                    if (street == 3 || (street == 4 && randPercent3 < 0.75 && bluffCatcherFact == 1))
+                    if (handStrength > theNutsStrength && street == 3 || (street == 4 && randPercent3 < 0.75 && bluffCatcherFact == 1))
                     {
                         double randPercent2 = (rand() / double(RAND_MAX));
                         if (pot < 100 && (randPercent2 < 0.5 || (randPercent2 < 0.85 && bluffCatcherFact == 1)))
@@ -1888,6 +1902,7 @@ struct Bot
                             numOppChecks = 0;
                             numSelfChecks = 0;
                             ourRaisesThisRound++;
+                            ourReRaisesThisRound++;
                             return {{Action::Type::RAISE}, 6};
                         }
                     }
@@ -1897,6 +1912,7 @@ struct Bot
                         numOppChecks = 0;
                         numSelfChecks = 0;
                         ourRaisesThisRound++;
+                        ourReRaisesThisRound++;
                         return {{Action::Type::RAISE}, 5};
                     }
                 }
@@ -2093,13 +2109,9 @@ struct Bot
                 BestHandResult playerBest = evalHand(playerAllCards);
                 BestHandResult oppBest = evalHand(oppAllCards);
 
-                if (playerBest.minVal < oppBest.minVal)
+                if (playerBest.minVal <= oppBest.minVal)
                 {
                     winCount += 2;
-                }
-                else if (playerBest.minVal == oppBest.minVal)
-                {
-                    winCount++;
                 }
             }
 
