@@ -303,10 +303,10 @@ struct Bot
     int oppLastContribution = 0;
 
     double raiseFactor = 0.05;
-    double reRaiseFactor = 0.0075;
+    double reRaiseFactor = 0.02;
 
     bool hasBounty = false;
-    int bountyRaises = 1;
+    int bountyRaises = 0;
     bool alarmBell = false;
 
     bool nitToggle = true; // think reversely
@@ -438,7 +438,7 @@ struct Bot
         }
 
         hasBounty = false;
-        bountyRaises = 1;
+        bountyRaises = 0;
         alarmBell = false;
         if (myBankroll > 1000)
         {
@@ -629,7 +629,7 @@ struct Bot
         if ((numOppBetNoCheck + totalOppChecks) > 15)
         {
             double OppBetPercent = numOppBetNoCheck / static_cast<double>(numOppBetNoCheck + totalOppChecks);
-            if (OppBetPercent > 0.44069)
+            if (OppBetPercent > 0.44069) 
             {
                 //std::cout << "Opp bluffing A LOT" << std::endl;
                 bluffCatcherFact = 1;
@@ -1614,6 +1614,8 @@ struct Bot
 
             if (hasBounty && handStrength < 0.7 && (!permanentNoBountyBluff || (aggressiveMode && randPercent < 0.5)))
             {
+                bountyRaises++;
+
                 if (bountyRaises > 1)
                 {
                     std::cout << "I stop bounty bluff raising due to failed attempt" << std::endl;
@@ -1646,7 +1648,6 @@ struct Bot
                     numSelfChecks = 0;
                     ourRaisesThisRound++;
                     bountyBluff = true;
-                    bountyRaises++;
                     return {{Action::Type::RAISE}, 4};
                 }
                 else
@@ -1666,14 +1667,14 @@ struct Bot
 
             double checkNutsStrength = 0.815 + 0.03 * (street % 3);
             double randPercent4 = (rand() / double(RAND_MAX));
-            if (bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.7)) && randPercent < 0.75 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
+            if (bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.4)) && randPercent < 0.75 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
             {
                 std::cout << "I check deception against agg team with strong hand" << std::endl;
                 numSelfChecks++;
                 return {{Action::Type::CHECK}, -1};
             }
 
-            else if (((randPercent < handStrength || street == 5)) && (handStrength >= raiseStrength))
+            else if (((randPercent < handStrength + 0.15 || street == 5)) && (handStrength >= raiseStrength))
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -1858,7 +1859,7 @@ struct Bot
             }
             else
             {
-                double reraiseStrength = (0.84 + ((street % 3) * (double)reRaiseFactor));
+                double reraiseStrength = (0.86 + ((street % 3) * (double)reRaiseFactor));
                 reraiseStrength += oppNumReraise * 0.04; // increase reraise strength if opponent reraises
                 
                 if (realPotOdds > 1.1) //more nitty reraising against huge opponent bets
