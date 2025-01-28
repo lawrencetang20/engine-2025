@@ -303,7 +303,7 @@ struct Bot
     int oppLastContribution = 0;
 
     double raiseFactor = 0.05;
-    double reRaiseFactor = 0.02;
+    double reRaiseFactor = 0.0075;
 
     bool hasBounty = false;
     int bountyRaises = 0;
@@ -1674,7 +1674,7 @@ struct Bot
                 return {{Action::Type::CHECK}, -1};
             }
 
-            else if (((randPercent < handStrength - 0.075 || street == 5)) && (handStrength >= raiseStrength))
+            else if (((randPercent < handStrength - 0.2 || street == 5)) && (handStrength >= raiseStrength))
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
@@ -1859,7 +1859,7 @@ struct Bot
             }
             else
             {
-                double reraiseStrength = (0.86 + ((street % 3) * (double)reRaiseFactor));
+                double reraiseStrength = (0.84 + ((street % 3) * (double)reRaiseFactor));
                 reraiseStrength += oppNumReraise * 0.04; // increase reraise strength if opponent reraises
                 
                 if (realPotOdds > 1.1) //more nitty reraising against huge opponent bets
