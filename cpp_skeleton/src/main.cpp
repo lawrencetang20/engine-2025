@@ -1614,8 +1614,6 @@ struct Bot
 
             if (hasBounty && handStrength < 0.7 && (!permanentNoBountyBluff || (aggressiveMode && randPercent < 0.5)))
             {
-                bountyRaises++;
-
                 if (bountyRaises > 1)
                 {
                     std::cout << "I stop bounty bluff raising due to failed attempt" << std::endl;
@@ -1648,6 +1646,7 @@ struct Bot
                     numSelfChecks = 0;
                     ourRaisesThisRound++;
                     bountyBluff = true;
+                    bountyRaises++;
                     return {{Action::Type::RAISE}, 4};
                 }
                 else
