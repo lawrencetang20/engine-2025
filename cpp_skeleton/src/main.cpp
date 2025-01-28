@@ -303,7 +303,7 @@ struct Bot
     int oppLastContribution = 0;
 
     double raiseFactor = 0.05;
-    double reRaiseFactor = 0.02;
+    double reRaiseFactor = 0.0075;
 
     bool hasBounty = false;
     int bountyRaises = 0;
@@ -629,7 +629,7 @@ struct Bot
         if ((numOppBetNoCheck + totalOppChecks) > 15)
         {
             double OppBetPercent = numOppBetNoCheck / static_cast<double>(numOppBetNoCheck + totalOppChecks);
-            if (OppBetPercent > 0.35) //change to 0.44069
+            if (OppBetPercent > 0.44069) 
             {
                 //std::cout << "Opp bluffing A LOT" << std::endl;
                 bluffCatcherFact = 1;
