@@ -1888,7 +1888,7 @@ struct Bot
 
                 if (handStrength >= reraiseStrength || (handStrength - changedPotOdds > 0.5 && handStrength >= reraiseStrength - 0.05))
                 {
-                    if (handStrength > theNutsStrength && street == 3 || (street == 4 && randPercent3 < 0.75 && bluffCatcherFact == 1))
+                    if (handStrength > theNutsStrength && (street == 3 || (street == 4 && randPercent3 < 0.75 && bluffCatcherFact == 1)))
                     {
                         double randPercent2 = (rand() / double(RAND_MAX));
                         if (pot < 100 && (randPercent2 < 0.5 || (randPercent2 < 0.85 && bluffCatcherFact == 1)))
