@@ -629,7 +629,7 @@ struct Bot
         if ((numOppBetNoCheck + totalOppChecks) > 15)
         {
             double OppBetPercent = numOppBetNoCheck / static_cast<double>(numOppBetNoCheck + totalOppChecks);
-            if (OppBetPercent > 0.44069) 
+            if (OppBetPercent > 0.4) //change to 0.44069
             {
                 //std::cout << "Opp bluffing A LOT" << std::endl;
                 bluffCatcherFact = 1;
