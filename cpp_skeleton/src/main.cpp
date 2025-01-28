@@ -1667,14 +1667,14 @@ struct Bot
 
             double checkNutsStrength = 0.815 + 0.03 * (street % 3);
             double randPercent4 = (rand() / double(RAND_MAX));
-            if (bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.4)) && randPercent < 0.75 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
+            if (bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.8)) && randPercent < 0.8 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
             {
                 std::cout << "I check deception against agg team with strong hand" << std::endl;
                 numSelfChecks++;
                 return {{Action::Type::CHECK}, -1};
             }
 
-            else if (((randPercent < handStrength + 0.15 || street == 5)) && (handStrength >= raiseStrength))
+            else if (((randPercent < handStrength - 0.075 || street == 5)) && (handStrength >= raiseStrength))
             {
                 numOppChecks = 0;
                 numSelfChecks = 0;
