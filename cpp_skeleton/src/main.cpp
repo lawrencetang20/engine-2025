@@ -303,7 +303,7 @@ struct Bot
     int oppLastContribution = 0;
 
     double raiseFactor = 0.05;
-    double reRaiseFactor = 0.0075;
+    double reRaiseFactor = 0.01;
 
     bool hasBounty = false;
     int bountyRaises = 0;
@@ -1667,7 +1667,7 @@ struct Bot
 
             double checkNutsStrength = 0.815 + 0.03 * (street % 3);
             double randPercent4 = (rand() / double(RAND_MAX));
-            if (bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.8)) && randPercent < 0.8 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
+            if (bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.7)) && randPercent < 0.8 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
             {
                 std::cout << "I check deception against agg team with strong hand" << std::endl;
                 numSelfChecks++;
@@ -1859,7 +1859,7 @@ struct Bot
             }
             else
             {
-                double reraiseStrength = (0.84 + ((street % 3) * (double)reRaiseFactor));
+                double reraiseStrength = (0.81 + ((street % 3) * (double)reRaiseFactor));
                 reraiseStrength += oppNumReraise * 0.04; // increase reraise strength if opponent reraises
                 
                 if (realPotOdds > 1.1) //more nitty reraising against huge opponent bets
