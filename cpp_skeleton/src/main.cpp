@@ -1665,7 +1665,7 @@ struct Bot
             raiseStrength = std::min(raiseStrength, 0.9);
             std::cout << "Raise Strength: " << raiseStrength << std::endl;
 
-            double checkNutsStrength = 0.815 + 0.03 * (street % 3);
+            double checkNutsStrength = 0.81 + (street % 3) * (double)reRaiseFactor;
             double randPercent4 = (rand() / double(RAND_MAX));
             if (bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.7)) && randPercent < 0.8 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
             {
