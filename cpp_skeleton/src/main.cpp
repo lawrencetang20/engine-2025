@@ -315,6 +315,7 @@ struct Bot
     int oppRaiseAsDealer = 0;
     int oppReraiseAsBB = 0;
     int ourRaiseAsDealer = 0;
+    int oppBigDealerRaise = 0;
 
     bool oppReRaiseAsBBMore = true;
     bool oppRaiseAsDealerLess = true;
@@ -350,6 +351,7 @@ struct Bot
     int ourTotalRaises = 0;
     int oppTotalReraises = 0;
     int ourReRaisesThisRound = 0;
+    int bbPipThreshold = 12;
 
     double alreadyWonConst = 0.25;
 
@@ -1050,11 +1052,25 @@ struct Bot
             }
 
             oppRaiseAsDealer++;
+            if (oppPip > 12 && oppPip <= 20)
+            {
+                oppBigDealerRaise++;
+            }
 
-            if (((((handStrength < 9 || (handStrength <= 61 && oppPip <= 5) || (handStrength <= 46 && oppPip <= 12) || (handStrength <= 12 && oppPip <= 25)) && !oppRaiseAsDealerLess) ||
-                ((handStrength < 9 || (handStrength <= 41 && oppPip <= 5) || (handStrength <= 32 && oppPip <= 12) || (handStrength <= 9 && oppPip <= 25)) && oppRaiseAsDealerLess)) && bluffCatcherFact == 0) ||
-                ((((handStrength < 9 || (handStrength <= 46 && oppPip <= 5) || (handStrength <= 31 && oppPip <= 12) || (handStrength <= 9 && oppPip <= 25)) && !oppRaiseAsDealerLess) ||
-                ((handStrength < 9 || (handStrength <= 32 && oppPip <= 5) || (handStrength <= 25 && oppPip <= 12) || (handStrength <= 9 && oppPip <= 25)) && oppRaiseAsDealerLess)) && bluffCatcherFact == 1)
+            if (((double)oppBigDealerRaise / (double)oppRaiseAsDealer > 0.125) && oppRaiseAsDealer > 8)
+            {
+                bbPipThreshold = 20;
+            }
+            else{
+                bbPipThreshold = 12;
+            }
+            std::cout << bbPipThreshold << std::endl;
+
+
+            if (((((handStrength < 9 || (handStrength <= 61 && oppPip <= 5) || (handStrength <= 46 && oppPip <= bbPipThreshold) || (handStrength <= 14 && oppPip <= 25)) && !oppRaiseAsDealerLess) ||
+                ((handStrength < 9 || (handStrength <= 41 && oppPip <= 5) || (handStrength <= 32 && oppPip <= bbPipThreshold) || (handStrength <= 9 && oppPip <= 25)) && oppRaiseAsDealerLess)) && bluffCatcherFact == 0) ||
+                ((((handStrength < 9 || (handStrength <= 46 && oppPip <= 5) || (handStrength <= 31 && oppPip <= bbPipThreshold) || (handStrength <= 14 && oppPip <= 25)) && !oppRaiseAsDealerLess) ||
+                ((handStrength < 9 || (handStrength <= 32 && oppPip <= 5) || (handStrength <= 25 && oppPip <= bbPipThreshold) || (handStrength <= 9 && oppPip <= 25)) && oppRaiseAsDealerLess)) && bluffCatcherFact == 1)
             )  //Always get here w bounty
             {
                 timesBetPreflop++;
@@ -1062,10 +1078,10 @@ struct Bot
 
                 if (oldHandStrength >= 9 && hasBounty) //weak hands with bounty
                 {
-                    if (((((oppPip <= 6) || (oldHandStrength <= 180 && oppPip <= 12) || (oldHandStrength <= 18 && oppPip <= 30) && !oppRaiseAsDealerLess) ||
-                        ((oldHandStrength <= 88 && oppPip <= 12) || (oldHandStrength <= 12 && oppPip <= 30) && oppRaiseAsDealerLess)) && bluffCatcherFact == 0) ||
-                        ((((oppPip <= 6) || (oldHandStrength <= 61 && oppPip <= 12) || (oldHandStrength <= 14 && oppPip <= 30) && !oppRaiseAsDealerLess) ||
-                        ((oldHandStrength <= 41 && oppPip <= 12) || (oldHandStrength <= 12 && oppPip <= 30) && oppRaiseAsDealerLess)) && bluffCatcherFact == 1)
+                    if (((((oppPip <= 6) || (oldHandStrength <= 180 && oppPip <= bbPipThreshold) || (oldHandStrength <= 18 && oppPip <= 30) && !oppRaiseAsDealerLess) ||
+                        ((oldHandStrength <= 88 && oppPip <= bbPipThreshold) || (oldHandStrength <= 14 && oppPip <= 30) && oppRaiseAsDealerLess)) && bluffCatcherFact == 0) ||
+                        ((((oppPip <= 6) || (oldHandStrength <= 61 && oppPip <= bbPipThreshold) || (oldHandStrength <= 14 && oppPip <= 30) && !oppRaiseAsDealerLess) ||
+                        ((oldHandStrength <= 41 && oppPip <= bbPipThreshold) || (oldHandStrength <= 14 && oppPip <= 30) && oppRaiseAsDealerLess)) && bluffCatcherFact == 1)
                     ) //when to reraise with bounty
                     {
                         if (legalActions.find(Action::Type::RAISE) != legalActions.end())
