@@ -1057,14 +1057,14 @@ struct Bot
                 oppBigDealerRaise++;
             }
 
-            if (((double)oppBigDealerRaise / (double)oppRaiseAsDealer > 0.20) && oppRaiseAsDealer > 8)
+            if (((double)oppBigDealerRaise / (double)oppRaiseAsDealer > 0.125) && oppRaiseAsDealer > 8)
             {
-                bbPipThreshold = 25;
+                bbPipThreshold = 20;
             }
-            else{
+            else
+            {
                 bbPipThreshold = 12;
             }
-            std::cout << bbPipThreshold << std::endl;
 
 
             if (((((handStrength < 9 || (handStrength <= 61 && oppPip <= 5) || (handStrength <= 46 && oppPip <= bbPipThreshold) || (handStrength <= 14 && oppPip <= 25)) && !oppRaiseAsDealerLess) ||
@@ -1119,7 +1119,7 @@ struct Bot
                             return {Action::Type::FOLD};
                         }
                     }
-                    else if ((oppPip <= 12 && oldHandStrength <= 110) || (oppPip > 12 && oppPip <= 25 && oldHandStrength < 88)) //fold super shitters with bounty else call, great pot odds. Note rarely get here - only if opponent raises between 13-20.
+                    else if (oppPip <= 25 && oldHandStrength <= 120) //fold super shitters with bounty else call, great pot odds. Note rarely get here - only if opponent raises between 13-20.
                     {
                         if (legalActions.find(Action::Type::CALL) != legalActions.end())
                         {
@@ -2020,13 +2020,31 @@ struct Bot
         char myBounty = roundState->bounties[active];    // your current bounty rank
 
         double handStrength;
+        double pot = 800 - myStack - oppStack;
+        int raiseSize = noIllegalRaises(int(1.1*pot), roundState, active);
+        
 
         std::pair<Action, int> postflopAction;
+        double rando1 = (rand() / double(RAND_MAX));
+        double rando2 = (rand() / double(RAND_MAX));
 
-        if (alreadyWon)
+        if (legalActions.find(Action::Type::RAISE) != legalActions.end() && rando1 < 0.4)
+        {
+            return {Action::Type::RAISE, raiseSize};
+        }
+        else if (legalActions.find(Action::Type::CALL) != legalActions.end() && rando2 < 0.6)
+        {
+            return {Action::Type::CALL};
+        }
+        else if (legalActions.find(Action::Type::CHECK) != legalActions.end())
+        {
+            return {Action::Type::CHECK};
+        }
+        else
         {
             return {Action::Type::FOLD};
         }
+        
         if (street == 0)
         {
             return getPreflopAction(roundState, active);
