@@ -1057,9 +1057,9 @@ struct Bot
                 oppBigDealerRaise++;
             }
 
-            if (((double)oppBigDealerRaise / (double)oppRaiseAsDealer > 0.125) && oppRaiseAsDealer > 8)
+            if (((double)oppBigDealerRaise / (double)oppRaiseAsDealer > 0.20) && oppRaiseAsDealer > 8)
             {
-                bbPipThreshold = 20;
+                bbPipThreshold = 25;
             }
             else{
                 bbPipThreshold = 12;
@@ -1119,7 +1119,7 @@ struct Bot
                             return {Action::Type::FOLD};
                         }
                     }
-                    else if (oppPip <= 25 && oldHandStrength <= 120) //fold super shitters with bounty else call, great pot odds. Note rarely get here - only if opponent raises between 13-20.
+                    else if ((oppPip <= 12 && oldHandStrength <= 110) || (oppPip > 12 && oppPip <= 25 && oldHandStrength < 88)) //fold super shitters with bounty else call, great pot odds. Note rarely get here - only if opponent raises between 13-20.
                     {
                         if (legalActions.find(Action::Type::CALL) != legalActions.end())
                         {
