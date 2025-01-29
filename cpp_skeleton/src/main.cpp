@@ -362,7 +362,7 @@ struct Bot
     int consecutivePassive = 0;
     bool oppCheckFold = false;
 
-
+    bool reraiseLess = false;
 
     std::unordered_map<std::string, int> regularPreflopDict = {
         {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 10}, {"88o", 10}, {"AKs", 6}, {"77o", 11}, {"AQs", 9}, {"AJs", 11}, 
@@ -692,6 +692,15 @@ struct Bot
         else
         {
             oppReRaiseAsBBMore = false;
+        }
+
+        if ((myBankroll > 1000 && roundNum > 500) || (myBankroll > 1500 && roundNum > 300))
+        {
+            reraiseLess = true;
+        }
+        else
+        {
+            reraiseLess = false;
         }
     }
 
@@ -1889,7 +1898,13 @@ struct Bot
             {
                 double reraiseStrength = (0.81 + ((street % 3) * (double)reRaiseFactor));
                 reraiseStrength += oppNumReraise * 0.05; // increase reraise strength if opponent reraises
-                reraiseStrength += ourReRaisesThisRound * 0.02;
+                reraiseStrength += ourReRaisesThisRound * 0.04;
+
+                if (reraiseLess)
+                {
+                    reraiseStrength += 0.05 - (street % 3) * 0.01;
+                    std::cout << "rr less" << std::endl;
+                }
                 
                 if (realPotOdds > 1.1) //more nitty reraising against huge opponent bets
                 {
