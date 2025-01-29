@@ -363,6 +363,8 @@ struct Bot
     bool oppCheckFold = false;
 
     bool reraiseLess = false;
+    bool shoveTime = false;
+    bool autoFold = false;
 
     std::unordered_map<std::string, int> regularPreflopDict = {
         {"AAo", 1}, {"KKo", 2}, {"QQo", 3}, {"JJo", 4}, {"TTo", 5}, {"99o", 10}, {"88o", 10}, {"AKs", 6}, {"77o", 11}, {"AQs", 9}, {"AJs", 11}, 
@@ -446,6 +448,7 @@ struct Bot
         hasBounty = false;
         bountyRaises = 0;
         alarmBell = false;
+
         if (myBankroll > 1000)
         {
             bountyRaises++;
@@ -454,6 +457,36 @@ struct Bot
             //std::cout << "No more bounty bluff raises" << std::endl;
         }
 
+        if ((myBankroll > 1000 && roundNum > 500) || (myBankroll > 1500 && roundNum > 300))
+        {
+            reraiseLess = true;
+        }
+        else
+        {
+            reraiseLess = false;
+        }
+
+        if (roundNum == 1000)
+        {
+            if (active && myBankroll <= 2 && myBankroll >= -1)
+            {
+                std::cout << "AAAAAAHHHHHH" << std::endl;
+                shoveTime = true;
+            }
+            else if (!active && myBankroll <= 1 && myBankroll >= -1)
+            {
+                std::cout << "AAAAAAHHHHHH" << std::endl;
+                shoveTime = true;
+            }
+            else
+            {
+                shoveTime = false;
+            }
+        }
+        else
+        {
+            shoveTime = false;
+        }
 
         numOppChecks = 0;
         numSelfChecks = 0;
@@ -505,6 +538,16 @@ struct Bot
         {
             aggressiveMode = false;
             //std::cout << "agg mode false" << std::endl;
+        }
+
+        if (myBankroll >= (int)ceil(12.5*remainingRounds + 1))
+        {
+            std::cout << "WOOWEE" << std::endl;
+            autoFold = true;
+        }
+        else
+        {
+            autoFold = false;
         }
 
         
@@ -693,15 +736,6 @@ struct Bot
         {
             oppReRaiseAsBBMore = false;
         }
-
-        if ((myBankroll > 1000 && roundNum > 500) || (myBankroll > 1500 && roundNum > 300))
-        {
-            reraiseLess = true;
-        }
-        else
-        {
-            reraiseLess = false;
-        }
     }
 
     int get_rank_index(char rank)
@@ -839,6 +873,12 @@ struct Bot
 
         if (!bigBlind && timesBetPreflop == 0) //dealer, first to act
         {
+            if (shoveTime)
+            {
+                timesBetPreflop++;
+                std::cout << "Shove time all in" << std::endl;
+                return {Action::Type::RAISE, noIllegalRaises(400, roundState, active)};
+            }
             if (oppCheckFold)
             {
                 if (hasBounty)
@@ -950,6 +990,21 @@ struct Bot
         }
         else if (bigBlind && timesBetPreflop == 0) //big blind, haven't acted yet
         {
+            if (shoveTime)
+            {
+                if (legalActions.find(Action::Type::RAISE) != legalActions.end())
+                {
+                    timesBetPreflop++;
+                    std::cout << "Shove time all in" << std::endl;
+                    return {Action::Type::RAISE, noIllegalRaises(400, roundState, active)};
+                }
+                else
+                {
+                    std::cout << "Agg call from bb with bounty" << std::endl;
+                    timesBetPreflop++;
+                    return {Action::Type::CALL};
+                }
+            }
             if (aggressiveMode)
             {
                 if (hasBounty)
@@ -2038,7 +2093,7 @@ struct Bot
 
         std::pair<Action, int> postflopAction;
 
-        if (alreadyWon)
+        if (alreadyWon || autoFold)
         {
             return {Action::Type::FOLD};
         }
