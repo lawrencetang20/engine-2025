@@ -1718,14 +1718,13 @@ struct Bot
                 }
                 else if (street == 3 && handStrength > 0.65)
                 {
-                    std::cout << "Blocker bet with bounty for value: #" << bountyRaises << std::endl;
                     numOppChecks = 0;
                     numSelfChecks = 0;
                     ourRaisesThisRound++;
                     bountyBluff = true;
                     return {{Action::Type::RAISE}, 1};
                 }
-                else if ((randPercent < 0.60 && nitToggle) || aggressiveMode)
+                else if (handStrength < 0.55 && ((randPercent < 0.60 && nitToggle) || aggressiveMode))
                 {
                     std::cout << "I randomly bounty bluff raise #" << bountyRaises << std::endl;
                     numOppChecks = 0;
@@ -1752,14 +1751,15 @@ struct Bot
             double checkNutsStrength = 0.81 + (street % 3) * (double)reRaiseFactor;
             double checkMegaNutsStrength = 0.87 + (street%3) * (double)reRaiseFactor;
             double randPercent4 = (rand() / double(RAND_MAX));
-            if (bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.7)) && randPercent < 0.8 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
+
+            if (!hasBounty && bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.7)) && randPercent < 0.8 && handStrength > checkNutsStrength && (street == 3 || (street == 4 && oppNumBetsThisRound > 0 && ourRaisesThisRound < 1)))
             {
                 std::cout << "I check deception against agg team with strong hand" << std::endl;
                 numSelfChecks++;
                 return {{Action::Type::CHECK}, -1};
             }
 
-            else if (!bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.6069)) && randPercent < 0.9 && handStrength > checkMegaNutsStrength && street == 3)
+            else if (!hasBounty && !bigBlind && (bluffCatcherFact == 1 || (bluffCatcherFact == 0 && randPercent4 < 0.6069)) && randPercent < 0.9 && handStrength > checkMegaNutsStrength && street == 3)
             {
                 std::cout << "I check deception against agg team with strong hand" << std::endl;
                 numSelfChecks++;
@@ -1772,7 +1772,15 @@ struct Bot
                 numSelfChecks = 0;
                 ourRaisesThisRound++;
                 //std::cout << "I random raise for value with handStrength " << handStrength << std::endl;
-                return {{Action::Type::RAISE}, 1};
+                if (hasBounty)
+                {
+                    return {{Action::Type::RAISE}, 8};
+                }
+                else
+                {
+                    return {{Action::Type::RAISE}, 1};
+                }
+                
             }
             else if (alarmBell && numOppChecks >= 2)
             {
@@ -1977,7 +1985,7 @@ struct Bot
                     if (handStrength > theNutsStrength && (street == 3 || (street == 4 && randPercent3 < 0.75 && bluffCatcherFact == 1)))
                     {
                         double randPercent2 = (rand() / double(RAND_MAX));
-                        if (pot < 100 && (randPercent2 < 0.5 || (randPercent2 < 0.85 && bluffCatcherFact == 1)))
+                        if (!hasBounty && pot < 100 && (randPercent2 < 0.5 || (randPercent2 < 0.85 && bluffCatcherFact == 1)))
                         {
                             std::cout << "I call with nuts deception" << std::endl;
                             return {{Action::Type::CALL}, -1};
@@ -2028,48 +2036,50 @@ struct Bot
 
         double randPercent = (rand() / double(RAND_MAX));
 
-        double nutsThreshold = 0.87 + 0.02 * (street % 3); //nutted
+        double nutsThreshold = 0.86 + 0.02 * (street % 3); //nutted
         double secondThreshold = 0.80 + 0.03 * (street % 3);
 
 
         // bluffing raise
         if (actionCategory == 4 || actionCategory == 3 || actionCategory == 2)
         {
-            return noIllegalRaises(int((std::max(randPercent + 0.55, 1.1)) * pot), roundState, active); //1.1 - 1.55x pot for bluff
+            return noIllegalRaises(int((std::max(randPercent + 0.35, 1.1)) * pot), roundState, active); //1.1 - 1.55x pot for bluff
         }
         // value raise
         else if (actionCategory == 5) //reraises
         {
-            return noIllegalRaises(int((std::max(randPercent + 0.7, 1.2)) * pot), roundState, active); //reraises
+            return noIllegalRaises(int((std::max(randPercent + 0.6, 1.2)) * pot), roundState, active); //reraises
         }
         else if (actionCategory == 6) //min click reraise
         {
             return noIllegalRaises(1, roundState, active); //reraises
         }
+        else if (actionCategory == 8 && handStrength >= nutsThreshold)
+        {
+            if (pot >= 20 && street != 5)
+            {
+                return noIllegalRaises(int((std::max(randPercent - 0.4, 0.4)) * pot), roundState, active); //try potting opponent in with the nuts early in hand
+            }
+            else
+            {
+                return noIllegalRaises(int((std::max(randPercent - 0.2, .5)) * pot), roundState, active); // 1.2-1.85x pot
+            }
+        }
         else if (actionCategory == 1 && handStrength >= nutsThreshold)
         {
             if (pot >= 20 && street != 5)
             {
-                return noIllegalRaises(int((std::max(randPercent - 0.1, 0.5)) * pot), roundState, active); //try potting opponent in with the nuts early in hand
+                return noIllegalRaises(int((std::max(randPercent - 0.25, 0.5)) * pot), roundState, active); //try potting opponent in with the nuts early in hand
             }
             else
             {
-                return noIllegalRaises(int((std::max(randPercent + 0.85, 1.2)) * pot), roundState, active); // 1.2-1.85x pot
+                return noIllegalRaises(int((std::max(randPercent + 0.2, 0.75)) * pot), roundState, active); // 1.2-1.85x pot
             }
-        }
-        
+        } 
         else
         {
-            if (handStrength > secondThreshold)
-            {
-                std::cout << "randPercent" << std::endl;
-                return noIllegalRaises(int((randPercent + 0.5) * pot), roundState, active); //0.5-1.5x pot for value
-            }
-            else
-            {
-                std::cout << "randPercent" << std::endl;  //TODO - blocker bets?? change sizing on slightly weaker value hands to block 
-                return noIllegalRaises(int((randPercent * 0.5 + 0.4) * pot), roundState, active); //0.4-0.9x pot for value
-            }
+            std::cout << "randPercent" << std::endl;
+            return noIllegalRaises(int((randPercent + 0.5) * pot), roundState, active); //0.5-1.5x pot for value
         }
     }
 
